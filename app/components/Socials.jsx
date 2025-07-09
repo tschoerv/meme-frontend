@@ -48,7 +48,7 @@ export default function Socials() {
                         <span className="text-xs text-center">Dexscreener</span>
                     </Button>
                 )}
-                {renderIcon('github', 'GitHub', '/github.png', 'https://github.com/tschoerv/meme_frontend')}
+                {renderIcon('github', 'GitHub', '/github.png', 'https://github.com/tschoerv/meme-frontend')}
             </div>
         </div>
 
