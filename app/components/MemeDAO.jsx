@@ -13,7 +13,7 @@ export default function MemeDAO() {
             name: "spiderwars",
             role: "Signer",
             img: "/pfp/spiderwars.jpg",
-            twitter: "https://x.com/ethSpiderwars/photo",
+            twitter: "https://x.com/ethSpiderwars",
         },
         {
             name: "Diogo",
