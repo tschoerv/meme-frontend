@@ -20,13 +20,13 @@ const geistMono = localFont({
 
 export const metadata = {
   title: "MEME",
-  description: "First Meme Coin on ETH",
+  description: "First Meme on ETH",
   icons: {
     icon: '/favicon.ico',
   },
   openGraph: {
     title: "MEME",
-    description: "First Meme Coin on ETH",
+    description: "First Meme on ETH",
     url: "https://meme2016.eth.limo",
     type: "website",
     images: [
@@ -34,14 +34,14 @@ export const metadata = {
         url: "https://meme2016.eth.limo/meme_banner.jpg", // must be an absolute URL
         width: 1200,
         height: 630,
-        alt: "MUTATIO $FLIES",
+        alt: "MEME",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MEME",
-    description: "First Meme Coin on ETH",
+    description: "First Meme on ETH",
     images: ["https://meme2016.eth.limo/meme_banner.jpg"],
   },
 };
