@@ -24,7 +24,7 @@ export default function MemeDAO() {
         {
             name: "Zacks.eth",
             role: "Meme Manager",
-            img: "/pfp/Zacks.jpg",
+            img: "/pfp/zacks.jpg",
             twitter: "https://x.com/0xzxch",
         },
         {
