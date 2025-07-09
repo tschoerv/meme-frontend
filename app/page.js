@@ -35,7 +35,7 @@ import { useDesktop } from './contexts/DesktopContext';
 
 /* ─────────────────────── */
 
-const slogan = 'First Meme Coin on ETH';
+const slogan = 'First Meme on ETH';
 
 /* ------------------------------------------------------------------ */
 /* little helper components                                           */
