@@ -12,7 +12,11 @@ export default function MemeLore() {
       </p>
 
       <p className='mb-4 mt-0'>
-        The deployer quietly minted <strong>257 MEME</strong> and vanished.
+        The deployer quietly minted <strong>257 MEME</strong> and vanished. To honor the creator, MemeDAO has locked 2.5% of the supply to be <a
+          href="https://etherscan.io/address/0x575c2466325d21ccd1b830d567015ea5ad270ab9"
+          target="_blank"
+          rel="noopener noreferrer"
+        >claimed</a> by the deployer address. 
       </p>
 
       <div className="flex flex-row items-center">

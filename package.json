@@ -11,7 +11,7 @@
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@react95/clippy": "^2.0.2",
-    "@react95/core": "^9.5.2",
+    "@react95/core": "^9.6.0-alpha.0",
     "@react95/icons": "^2.2.0",
     "@tanstack/react-query": "^5.81.5",
     "next": "15.3.5",

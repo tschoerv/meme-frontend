@@ -12,9 +12,6 @@ import {
   Tooltip,
   Cursor
 } from '@react95/core';
-import {
-  Time
-} from '@react95/icons';
 import ConnectButton95 from './ConnectButton95';
 import {
   useAccount,
@@ -25,8 +22,8 @@ import {
 } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 
-import proofsRound1 from '../proofs_test.js';
-import proofsRound2 from '../proofs_test.js';
+import proofsRound1 from '../proofs_22849225.js';
+import proofsRound2 from '../proofs_round2.js';
 import { AIRDROP_ABI } from '../abi/airdropAbi';
 import { FAUCET_ABI } from '../abi/faucetAbi';
 
@@ -69,6 +66,7 @@ function RoundTab({ roundId }) {
   /* safe defaults so subsequent hooks run every render */
   const regEnds = round ? Number(round[0]) : 0;
   const sharePerWallet = round ? round[3] : 0n;
+  const registrantCount = round ? Number(round[4]) : 0;
   const closed = round ? round[5] : false;
 
   /* user-specific state (hooks always called) */
@@ -167,32 +165,35 @@ function RoundTab({ roundId }) {
 
   /* ───────────────────────── JSX ───────────────────────── */
   return (
-    <div className="space-y-3">
+    <div>
+      <Fieldset className='flex flex-col' legend="Airdrop Status" width="350px">
+        <Checkbox readOnly checked={!!regOpen}>
+              {regOpen ? `Registration ends in ${timeLeft}` : 'Round closed'}
+        </Checkbox>
+        <Checkbox readOnly checked={!!registrantCount}>Registrant Count: {registrantCount}</Checkbox>
+        <Checkbox readOnly checked>Pool allocation: 34,521 MEME (5%)</Checkbox>
+        <Checkbox readOnly checked><Tooltip text="Holders of ≥ 100 WAAC, 15 WMC, 1000 btc, 100 FART and 100 MUTATIO/FLIES. Snapshot at block 22849225." delay={300}><u>Eligibility Criteria</u></Tooltip></Checkbox>
+      </Fieldset>
+
       {regOpen && (
         <div className="flex items-center justify-center">
           <Frame variant="well" p={2}>
-            <span className="flex items-center space-x-1 mt-2.5">
-
-              <span className="text-sm">
-                Registration ends in <strong>{timeLeft}</strong>
-              </span>
-              <Time variant="16x16_4" className="relative -top-px" />
-            </span>
+            
           </Frame>
         </div>
       )}
 
       {!isConnected ? (
         <>
-          <div className="flex flex-col items-center space-y-2 my-4">
+          <div className="flex flex-col items-center space-y-2 mb-4 mt-5">
             <Input
-              placeholder="Wallet address"
+              placeholder="Wallet Address"
               value={checkAddr}
               onChange={(e) => setCheckAddr(e.target.value)}
               className="w-80"
             />
             <Button className="w-80" onClick={onCheck} style={{ cursor: `url(${Cursor.Pointer}), pointer` }}>
-              Check eligibility
+              Check Eligibility
             </Button>
             {checkRes && (
               <p className="text-center text-sm mt-1">
@@ -207,7 +208,7 @@ function RoundTab({ roundId }) {
         </>
       ) : regOpen ? (
         <>
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center mt-4">
             <Button
               disabled={isReg || regPend || !eligible}
               onClick={onRegister}
@@ -215,7 +216,7 @@ function RoundTab({ roundId }) {
               style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
             >
               {isReg
-                ? 'Already registered'
+                ? 'Already Registered'
                 : !eligible
                   ? 'Register'
                   : regPend
@@ -225,11 +226,11 @@ function RoundTab({ roundId }) {
 
             {/* helper caption */}
             {isReg ? (
-              <p className="text-center text-xs mt-2">
+              <p className="text-center text-xs mt-2 mb-2">
                 Waiting for the round to close...
               </p>
             ) : (
-              <p className="text-center text-xs mt-2">
+              <p className="text-center text-xs mt-2 mb-2">
                 {eligible
                   ? 'Your wallet is on the whitelist.'
                   : 'Your wallet is NOT on the whitelist.'}
@@ -254,7 +255,7 @@ function RoundTab({ roundId }) {
                       className="w-60"
                       style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
                     >
-                      {isClaim ? 'Already claimed' : clmPend ? 'Pending…' : 'Claim'}
+                      {isClaim ? 'Already Claimed' : clmPend ? 'Pending…' : 'Claim'}
                     </Button>
 
                     {!closed && !isClaim && (
@@ -273,10 +274,10 @@ function RoundTab({ roundId }) {
               ) : (
                 <>
                   <div className="flex flex-col items-center justify-center">
-                    <p className="text-sm text-center font-semibold ">
+                    <p className="text-sm text-center font-semibold mb-1">
                       Round has ended.
                     </p>
-                    <p className="text-sm text-center text-red-500 font-semibold">
+                    <p className="text-sm text-center text-red-500 font-semibold my-1">
                       {proof.length > 0
                         ? 'You didn’t register in time.'
                         : 'Your wallet was not on the whitelist.'}
@@ -353,11 +354,11 @@ function FaucetTab() {
         style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
       >
         {claimed
-          ? 'Already claimed'
+          ? 'Already Claimed'
           : !open
-            ? 'Faucet closed'
+            ? 'Faucet Closed'
             : disabled
-              ? 'Connect wallet'
+              ? 'Connect Wallet'
               : 'Claim'}
       </Button>
     </div>
@@ -408,10 +409,10 @@ export default function Airdrop() {
             title={
               rounds >= 2
                 ? 'Round 2'
-                : <Tooltip text="soon!" delay={300}>Round 2</Tooltip>
+                : <Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Round 2</Tooltip>
             }
             disabled={rounds < 2}
-            style={rounds >= 2 ? { cursor: `url(${Cursor.Pointer}), pointer` } : {}}
+            style={rounds >= 2 ? { cursor: `url(${Cursor.Pointer}), pointer` } : { cursor: `url(${Cursor.NotAllowed}), not-allowed` }}
           >
             <RoundTab roundId={1} />
           </Tab>
