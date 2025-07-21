@@ -422,7 +422,7 @@ export default function Airdrop() {
       <div className="flex flex-row justify-center mt-2 mb-0">
         <span className="mr-1">Contract:</span>
         <a
-          href={`https://etherscan.io/token/${TAB_ADDRESS}`}
+          href={`https://etherscan.io/address/${TAB_ADDRESS}`}
           target="_blank"
           rel="noopener noreferrer"
         >
