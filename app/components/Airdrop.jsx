@@ -176,7 +176,7 @@ function RoundTab({ roundId }) {
 
       {!isConnected ? (
         <>
-          <div className="flex flex-col items-center space-y-2 mt-4">
+          <div className="flex flex-col items-center space-y-2 mt-4 mb-1">
             <Input
               placeholder="Wallet Address"
               value={checkAddr}
