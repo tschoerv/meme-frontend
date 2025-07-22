@@ -20,7 +20,7 @@ export default function MemeLore() {
       </p>
 
       <div className="flex flex-row items-center">
-        <p className='mb-1 mt-1'>Original Contract from 2016:</p>
+        <p className='mb-1 mt-1'>Original contract from 2016:</p>
         <span className="text-sm sm:text-base ml-1"><a
           href="https://etherscan.io/token/0x84965cf265d75478abd7c6aa45e1b80b5d5e38cf"
           target="_blank"
