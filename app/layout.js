@@ -31,7 +31,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "https://meme2016.eth.limo/meme_banner.jpg", // must be an absolute URL
+        url: "https://meme2016.eth.limo/meme_banner.JPG", // must be an absolute URL
         width: 1200,
         height: 630,
         alt: "MEME",
@@ -42,7 +42,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "MEME",
     description: "First Meme on ETH",
-    images: ["https://meme2016.eth.limo/meme_banner.jpg"],
+    images: ["https://meme2016.eth.limo/meme_banner.JPG"],
   },
 };
 
