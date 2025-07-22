@@ -47,7 +47,7 @@ export default function MemeLore() {
 
       <ol className="list-decimal list-inside mb-2 mt-0 space-y-1">
         <li>Swept <strong>690 162 MEME</strong> from the contract.</li>
-        <li>Miss-solved the math puzzle deliberately once, which minted a final <strong>1 MEME</strong> and locked the supply forever.</li>
+        <li>Submitted a non-perfect cube as nextChallenge on the last call, which minted a final <strong>1 MEME</strong> and locked the supply forever.</li>
       </ol>
 
       <p className="mb-6 mt-0">
