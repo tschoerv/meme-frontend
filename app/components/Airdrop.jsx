@@ -151,15 +151,6 @@ function RoundTab({ roundId }) {
     const p = getProofForAddress(checkAddr);
     const eligible = p.length > 0;
     let claimed = false;
-    try {
-      const { data } = await useReadContract.fetch({
-        address: CONTRACT_ADDRESS,
-        abi: AIRDROP_ABI,
-        functionName: 'claimed',
-        args: [roundId, checkAddr],
-      });
-      claimed = data;
-    } catch { }
     setCheckRes({ eligible, claimed });
   };
 
@@ -185,7 +176,7 @@ function RoundTab({ roundId }) {
 
       {!isConnected ? (
         <>
-          <div className="flex flex-col items-center space-y-2 mb-4 mt-5">
+          <div className="flex flex-col items-center space-y-2 mt-4">
             <Input
               placeholder="Wallet Address"
               value={checkAddr}
@@ -196,12 +187,10 @@ function RoundTab({ roundId }) {
               Check Eligibility
             </Button>
             {checkRes && (
-              <p className="text-center text-sm mt-1">
+              <p className="text-center text-xs mt-0 mb-0">
                 {checkRes.eligible
-                  ? checkRes.claimed
-                    ? 'This address has already claimed.'
-                    : 'Eligible! Connect your wallet to register.'
-                  : 'Not eligible to register.'}
+                  ? 'Not eligible to register.'
+                    : 'Eligible! Connect your wallet to register.'}
               </p>
             )}
           </div>
