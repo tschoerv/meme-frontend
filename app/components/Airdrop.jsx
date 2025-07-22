@@ -143,14 +143,16 @@ function RoundTab({ roundId }) {
     if (!simReg?.request) return alert('Simulation failed.');
     wReg(simReg.request);
   };
+
   const onClaim = () => {
     if (!simClm?.request) return alert('Round not claimable yet.');
     wClm(simClm.request);
   };
+
   const onCheck = async () => {
-    const p = getProofForAddress(checkAddr);
+    const p = getProofForAddress(checkAddr, roundId); // pass roundId!
     const eligible = p.length > 0;
-    let claimed = false;
+    let claimed = false; // you can implement real claim checks later
     setCheckRes({ eligible, claimed });
   };
 
@@ -159,7 +161,7 @@ function RoundTab({ roundId }) {
     <div>
       <Fieldset className='flex flex-col' legend="Airdrop Status" width="350px">
         <Checkbox readOnly checked={!!regOpen}>
-              {regOpen ? `Registration ends in ${timeLeft}` : 'Round closed'}
+          {regOpen ? `Registration ends in ${timeLeft}` : 'Round closed'}
         </Checkbox>
         <Checkbox readOnly checked={!!registrantCount}>Registrant Count: {registrantCount}</Checkbox>
         <Checkbox readOnly checked>Pool allocation: 34,521 MEME (5%)</Checkbox>
@@ -169,7 +171,7 @@ function RoundTab({ roundId }) {
       {regOpen && (
         <div className="flex items-center justify-center">
           <Frame variant="well" p={2}>
-            
+
           </Frame>
         </div>
       )}
@@ -187,10 +189,11 @@ function RoundTab({ roundId }) {
               Check Eligibility
             </Button>
             {checkRes && (
-              <p className="text-center text-xs mt-1 mb-0">
+              <p className={`text-center text-xs mt-1 mb-0 ${checkRes.eligible ? 'text-green-700' : 'text-red-500'
+                }`}>
                 {checkRes.eligible
-                  ? 'Not eligible to register.'
-                    : 'Eligible! Connect your wallet to register.'}
+                  ? 'Eligible! Connect your wallet to register.'
+                  : 'Not eligible to register.'}
               </p>
             )}
           </div>
@@ -219,7 +222,8 @@ function RoundTab({ roundId }) {
                 Waiting for the round to close...
               </p>
             ) : (
-              <p className="text-center text-xs mt-2 mb-2">
+              <p className={`text-center text-xs mt-2 mb-2 ${eligible ? 'text-green-700' : 'text-red-500'
+                }`} >
                 {eligible
                   ? 'Your wallet is on the whitelist.'
                   : 'Your wallet is NOT on the whitelist.'}
@@ -266,7 +270,7 @@ function RoundTab({ roundId }) {
                     <p className="text-sm text-center font-semibold mb-1">
                       Round has ended.
                     </p>
-                    <p className="text-sm text-center text-red-500 font-semibold my-1">
+                    <p className="text-sm text-center text-red-500 my-1">
                       {proof.length > 0
                         ? 'You didn’t register in time.'
                         : 'Your wallet was not on the whitelist.'}
