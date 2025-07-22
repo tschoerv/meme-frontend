@@ -16,12 +16,12 @@ export default function MemeLore() {
           href="https://etherscan.io/address/0x575c2466325d21ccd1b830d567015ea5ad270ab9"
           target="_blank"
           rel="noopener noreferrer"
-        >claimed</a> by the deployer address. 
+        >claimed</a> by the deployer address.
       </p>
 
       <div className="flex flex-row items-center">
         <p className='mb-1 mt-1'>Original Contract from 2016:</p>
-          <span className="text-sm sm:text-base ml-1"><a
+        <span className="text-sm sm:text-base ml-1"><a
           href="https://etherscan.io/token/0x84965cf265d75478abd7c6aa45e1b80b5d5e38cf"
           target="_blank"
           rel="noopener noreferrer"
@@ -54,12 +54,24 @@ export default function MemeLore() {
         Add in the OG’s 257 tokens and the supply crystallised at the meme-perfect <strong>690 420 MEME</strong>.
       </p>
 
+      <p className="mb-6">
+        To make Meme tradeable on modern infrastructure, a wrapper contract has been deployed at a meme-grade vanity address: &nbsp;
+        <a
+          href="https://etherscan.io/address/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          0x6942…69420
+        </a>
+      </p>
+
       <h3 className="text-xl sm:text-2xl font-semibold mb-2">What’s next?</h3>
       <ul className="list-disc list-inside space-y-1 mb-6">
         <li>Airdrop Season</li>
-        <li>Presale</li>
-        <li>LP Launch</li>
-        <li>...and so much more! Stay tuned!</li>
+        <li>Presale to fund the LP</li>
+        <li>Liquidity Pool Launch</li>
+        <li>Community proposals, campaigns & fun</li>
+        <li>Stay tuned for more!</li>
       </ul>
     </section>
   );

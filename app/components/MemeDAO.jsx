@@ -41,7 +41,7 @@ export default function MemeDAO() {
 
             <p className="mb-4">
                 <strong>MemeDAO</strong> stewards <strong>18.5 %</strong> of the fixed
-                <strong> 690 420 $MEME</strong> supply — fuel for marketing, partnerships, and community
+                supply — fuel for marketing, partnerships, and community
                 growth. The DAO also oversees the <strong>20 % airdrop</strong>,
                 ensuring tokens reach genuine meme believers.
             </p>
