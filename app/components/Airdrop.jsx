@@ -187,7 +187,7 @@ function RoundTab({ roundId }) {
               Check Eligibility
             </Button>
             {checkRes && (
-              <p className="text-center text-xs mt-0 mb-0">
+              <p className="text-center text-xs mt-1 mb-0">
                 {checkRes.eligible
                   ? 'Not eligible to register.'
                     : 'Eligible! Connect your wallet to register.'}
