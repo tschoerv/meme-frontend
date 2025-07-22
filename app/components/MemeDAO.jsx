@@ -33,6 +33,12 @@ export default function MemeDAO() {
             img: "/pfp/goatishduck.jpg",
             twitter: "https://x.com/goatishduck",
         },
+        {
+            name: "MJdata",
+            role: "Advisor",
+            img: "/pfp/mjdata.jpg",
+            twitter: "https://x.com/ChampagneMan",
+        }
     ];
 
     return (
@@ -63,7 +69,7 @@ export default function MemeDAO() {
             </ul>
 
             <h3 className="text-xl font-semibold mb-2">Core Roles</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
                 {people.map(({ name, role, img, twitter }) => (
                     <div
                         key={name}
