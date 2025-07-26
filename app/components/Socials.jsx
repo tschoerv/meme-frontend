@@ -28,8 +28,8 @@ export default function Socials() {
     return (
         <div>
             <div className="flex gap-1 mt-13">
-                {renderIcon('telegram', 'Telegram', '/telegram.png', 'https://t.me/memecoin2016')}
-                {renderIcon('x', 'X', '/x.png', 'https://x.com/Memecoin2016')}
+                {renderIcon('telegram', 'Telegram', '/telegram.avif', 'https://t.me/memecoin2016')}
+                {renderIcon('x', 'X', '/x.avif', 'https://x.com/Memecoin2016')}
                 {desktopItems.dexscreener && (
                     <Button
                         draggable
@@ -44,11 +44,11 @@ export default function Socials() {
                         onClick={isTouch ? () => alert('soon!') : undefined}
                         onDoubleClick={!isTouch ? () => alert('soon!') : undefined}
                     >
-                        <Image src="/dexscreener.png" alt="Dexscreener" width={48} height={48} />
+                        <Image src="/dexscreener.avif" alt="Dexscreener" width={48} height={48} />
                         <span className="text-xs text-center">Dexscreener</span>
                     </Button>
                 )}
-                {renderIcon('github', 'GitHub', '/github.png', 'https://github.com/tschoerv/meme-frontend')}
+                {renderIcon('github', 'GitHub', '/github.avif', 'https://github.com/tschoerv/meme-frontend')}
             </div>
         </div>
 

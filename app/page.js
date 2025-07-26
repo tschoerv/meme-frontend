@@ -131,7 +131,7 @@ function MemeHomepage() {
           }}
           className="flex flex-col items-center space-y-1"
         >
-          <Image src="/logo.png" alt="logo" width={48} height={48} />
+          <Image src="/logo_icon.avif" alt="logo" width={48} height={48} />
           <span className="text-xs text-center">logo.png</span>
         </Button>
       )}
@@ -141,7 +141,7 @@ function MemeHomepage() {
 
       {/* Wallpaper centrepiece */}
       <div className="flex flex-col items-center justify-center h-screen select-none">
-        <Image src="/logo.png" alt="logo" width={200} height={200} className="pointer-events-none" />
+        <Image src="/logo.avif" alt="logo" width={200} height={200} className="pointer-events-none" />
         <p className="mt-4 text-lg">{slogan}</p>
         <Socials />
       </div>
@@ -160,7 +160,7 @@ function MemeHomepage() {
         >
           <Modal.Content width={300} height={300} boxShadow="$in">
             <div className="flex flex-col items-center mt-4" style={{ minWidth: 310 }}>
-              <Image src="/logo.png" alt="logo" width={200} height={200} className="pointer-events-none" />
+              <Image src="/logo.avif" alt="logo" width={200} height={200} className="pointer-events-none" />
               <p className="mt-4 text-lg">{slogan}</p>
             </div>
           </Modal.Content>

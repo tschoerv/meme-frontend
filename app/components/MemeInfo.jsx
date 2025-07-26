@@ -8,7 +8,7 @@ export default function MemeLore() {
       </p>
 
       <p className="mb-0">
-        In the early ERC-20 days of 2016, an anonymous dev dropped a tiny contract called Meme. It’s a minimal, 0-decimal ERC-20 — every token is an indivisible unit. The twist? Minting was gated behind the on-chain riddle <code>rewardMathGeniuses()</code>, which only hands out one token when you supply the exact cube root of the current challenge.
+        In the early ERC-20 days of 2016, an anonymous dev dropped a tiny token contract called Meme. It’s a minimal, 0-decimal ERC-20 — not even a ticker symbol! The twist? Minting was gated behind the on-chain riddle <code>rewardMathGeniuses()</code>, which only hands out one token when you supply the exact cube root of the current challenge.
       </p>
 
       <p className='mb-4 mt-0'>
@@ -55,7 +55,7 @@ export default function MemeLore() {
       </p>
 
       <p className="mb-6">
-        To make Meme tradeable on modern infrastructure, a wrapper contract has been deployed at a meme-grade vanity address: &nbsp;
+        To make Meme tradeable on modern infrastructure and fill in the missing ticker symbol, a wrapper contract has been deployed at a meme-grade vanity address: &nbsp;
         <a
           href="https://etherscan.io/address/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420"
           target="_blank"
