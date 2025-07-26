@@ -6,31 +6,31 @@ export default function MemeDAO() {
         {
             name: "tschoerv",
             role: "Signer",
-            img: "/pfp/tschoerv.avif",
+            img: "/pfp/tschoerv.webp",
             twitter: "https://x.com/tschoerv",
         },
         {
             name: "spiderwars",
             role: "Signer",
-            img: "/pfp/spiderwars.avif",
+            img: "/pfp/spiderwars.webp",
             twitter: "https://x.com/ethSpiderwars",
         },
         {
             name: "Diogo",
             role: "Signer",
-            img: "/pfp/diogo.avif",
+            img: "/pfp/diogo.webp",
             twitter: "https://x.com/DiogoAndrea1",
         },
         {
             name: "Zacks.eth",
             role: "Meme Manager",
-            img: "/pfp/zacks.avif",
+            img: "/pfp/zacks.webp",
             twitter: "https://x.com/0xzxch",
         },
         {
             name: "MJdata",
             role: "Advisor",
-            img: "/pfp/mjdata.avif",
+            img: "/pfp/mjdata.webp",
             twitter: "https://x.com/ChampagneMan",
         }
     ];
