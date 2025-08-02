@@ -1,4 +1,16 @@
+import { useEffect } from "react";
+import Prism from "prismjs";
+import "prismjs/components/prism-solidity"; // language pack
+
 export default function MemeLore() {
+  // Highlight after the component mounts
+  useEffect(() => Prism.highlightAll(), []);
+
+  const code = `function rewardMathGeniuses(uint answerToCurrentReward, uint nextChallenge) {
+    if (answerToCurrentReward**3 != currentChallenge) throw;    // If answer is wrong do not continue
+    balanceOf[msg.sender] += 1;    // Reward the player
+    currentChallenge = nextChallenge;    // Set the next challenge
+}`;
   return (
     <section className="max-w-3xl mx-auto px-4 text-sm sm:text-base leading-relaxed">
       <h2 className="text-3xl sm:text-4xl font-bold mb-6">The Lore of Meme</h2>
@@ -28,16 +40,25 @@ export default function MemeLore() {
         >0x8496…38cf</a></span>
       </div>
 
-      <div className="bg-neutral-900 text-neutral-100 text-sm px-4 py-3 rounded-md overflow-x-auto mb- border border-neutral-700">
-        <pre className="whitespace-pre-wrap">
-          {`def rewardMathGeniuses(uint256 _answerToCurrentReward, uint256 _nextChallenge) payable: 
-  require _answerToCurrentReward^3 == stor5
-  balanceOf[caller]++
-  stor5 = _nextChallenge`}
-        </pre>
+      <div >
+        <pre
+      /* Tailwind gives us the “editor card” look */
+      className="bg-[#2d2d2d] rounded-md p-4 my-0"
+    >
+      {/* Prism needs <code> with a language-* class */}
+      <code className="language-solidity">{code}</code>
+    </pre>
       </div>
 
-      <p className="mb-2 mt-6">
+       <p className="mb-2 mt-2">
+        Back in 2016, this code snipped could be found on <a
+          href="https://web.archive.org/web/20160611065410/https://ethereum.org/token"
+          target="_blank"
+          rel="noopener noreferrer"
+        >ethereum.org</a> — yet it only made it on-chain twice.
+      </p>
+
+      <p className="mb-2 mt-4">
         Nine years later, <a
           href="https://x.com/tschoerv"
           target="_blank"
@@ -50,11 +71,11 @@ export default function MemeLore() {
         <li>Submitted a non-perfect cube as nextChallenge on the last call, which minted a final <strong>1 MEME</strong> and locked the supply forever.</li>
       </ol>
 
-      <p className="mb-6 mt-0">
+      <p className="mb-4 mt-0">
         Add in the OG’s 257 tokens and the supply crystallised at the meme-perfect <strong>690 420 MEME</strong>.
       </p>
 
-      <p className="mb-6">
+      <p className="mb-4">
         To make Meme tradeable on modern infrastructure and fill in the missing ticker symbol, a wrapper contract has been deployed at a meme-grade vanity address: &nbsp;
         <a
           href="https://etherscan.io/address/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420"
