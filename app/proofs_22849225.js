@@ -1,4 +1,4 @@
-export default [
+const proofsRound1 = [
   {
     "address": "0xD9D3c1D03F715d3Fc21cC90B1A7f0f80E8A7BC78",
     "proof": [
@@ -50065,3 +50065,5 @@ export default [
     ]
   }
 ]
+
+export default proofsRound1;
