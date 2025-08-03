@@ -21,8 +21,9 @@ import {
   useWaitForTransactionReceipt,
 } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
+import { isEthAddress } from '../utils/isAddress.js';
 
-import proofsRound1 from '../proofs_23031420.js';
+import proofsRound1 from '../proofs_22849225.js';
 import proofsRound2 from '../proofs_23031420.js';
 import { AIRDROP_ABI } from '../abi/airdropAbi';
 import { FAUCET_ABI } from '../abi/faucetAbi';
@@ -62,11 +63,6 @@ function formatTime(t) {
   return `${d}d ${h}h ${m}m ${s}s`;
 }
 
-const hasContract =
-  CLAIM_V2_ADDRESS &&
-  /^0x[0-9a-fA-F]{40}$/.test(CLAIM_V2_ADDRESS) &&         // looks like 0x…
-  !/^0x0{40}$/i.test(CLAIM_V2_ADDRESS);                    // but not 0x000…000
-
 /* ------------------------- Round‑2 (delegate claim) ------------------------- */
 
 function Round2ClaimTab() {
@@ -82,6 +78,12 @@ function Round2ClaimTab() {
   const [checked, setChecked] = useState(false);
   const [totalClaimed, setTotalClaimed] = useState('0');
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
+
+  const hasContract =
+    CLAIM_V2_ADDRESS &&
+    /^0x[0-9a-fA-F]{40}$/.test(CLAIM_V2_ADDRESS) &&         // looks like 0x…
+    !/^0x0{40}$/i.test(CLAIM_V2_ADDRESS);                    // but not 0x000…000
+
 
   /* local 1-s ticker for countdown */
   useEffect(() => {
@@ -140,7 +142,7 @@ function Round2ClaimTab() {
       const tokensClaimed = TOTAL_POOL - poolBal;
       setTotalClaimed(Number(tokensClaimed).toLocaleString('en-US'));
     }
-  }, [hasContract, poolBal]);
+  }, [hasContract, poolBal, TOTAL_POOL]);
 
   /* prefills */
   useEffect(() => {
@@ -148,7 +150,7 @@ function Round2ClaimTab() {
   }, [isConnected, caller]);
 
   /* ─────────── round state flags ─────────── */
-  const hasFunds = hasContract && poolBal !== undefined && poolBal > 0n;
+  const hasFunds = hasContract && poolBal !== undefined && poolBal >= 100n;
   const openTime = hasContract ? (opensAt ? Number(opensAt) : 0) : PRESET_OPENS_AT;
 
   const isOpen = hasContract && hasFunds && !isPaused && openTime !== 0 && nowTs >= (openTime - EARLY_BUFFER);
@@ -158,7 +160,8 @@ function Round2ClaimTab() {
 
   /* ─────────── whitelist proof ─────────── */
   const proof = getProofForV2(beneficiary);
-  const eligible = proof.length > 0;
+  const validAddr = isEthAddress(beneficiary);
+  const eligible = validAddr && proof.length > 0;
 
   /* ─────────── simulation (only if contract exists) ─────────── */
   const {
@@ -218,7 +221,7 @@ function Round2ClaimTab() {
       alreadyClaimed ? 'Already Claimed' :
         slotUsed ? 'Delegate Slot Used' :
           !eligible ? 'Not Eligible' :
-            simStatus === 'error' ? 'Not Yet Open' :
+            !hasFunds ? 'Pool is Empty' :
               caller && beneficiary && caller.toLowerCase() !== beneficiary.toLowerCase()
                 ? 'Delegate Claim'
                 : 'Claim';
@@ -293,8 +296,12 @@ function Round2ClaimTab() {
           </Button>
 
           {checked && beneficiary && (
-            <p className={`text-center text-xs mt-1 mb-0 ${eligible ? 'text-green-700' : 'text-red-500'}`}>
-              {eligible ? 'Wallet is on the whitelist.' : 'Wallet is NOT on the whitelist.'}
+            <p className={`text-center text-xs mt-1 mb-0 ${validAddr && eligible ? 'text-green-700' : 'text-red-500'}`}>
+              {validAddr
+                ? eligible
+                  ? 'Wallet is on the whitelist.'
+                  : 'Wallet is not on the whitelist.'
+                : 'Input is not an Ethereum address.'}
             </p>
           )}
         </div>
@@ -319,11 +326,19 @@ function Round2ClaimTab() {
             {claimLabel}
           </Button>
 
-          {beneficiary && (
-            !eligible ? (
-              <p className="text-center text-xs mt-2 mb-2 text-red-500">Wallet is NOT on the whitelist.</p>
+          {beneficiary && !alreadyClaimed && !slotUsed && (
+            !validAddr ? (
+              <p className="text-center text-xs mt-2 mb-2 text-red-500">
+                Input is not an Ethereum address.
+              </p>
+            ) : !eligible ? (
+              <p className="text-center text-xs mt-2 mb-2 text-red-500">
+                Wallet is not on the whitelist.
+              </p>
             ) : (
-              <p className="text-center text-xs mt-2 mb-2 text-green-700">Eligible to claim 100 MEME!</p>
+              <p className="text-center text-xs mt-2 mb-2 text-green-700">
+                Eligible to claim 100 MEME!
+              </p>
             )
           )}
         </div>
@@ -353,7 +368,7 @@ function RoundTab({ roundId }) {
   const registrantCount = round ? Number(round[4]) : 0;
   const closed = round ? round[5] : false;
 
-   /* countdown timer */
+  /* countdown timer */
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
     const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -382,6 +397,7 @@ function RoundTab({ roundId }) {
   /* manual eligibility check UI state */
   const [checkAddr, setCheckAddr] = useState('');
   const [checkRes, setCheckRes] = useState(null); // { eligible, claimed }
+  const validCheckAddr = isEthAddress(checkAddr);
 
   /* simulate / write */
   const proof = getProofForAddress(address, roundId);
@@ -393,7 +409,13 @@ function RoundTab({ roundId }) {
     functionName: 'register',
     args: [roundId, proof],
     account: address,
-    enabled: !!address && proof.length > 0,
+    query: {
+      enabled:
+        !!address &&           // wallet connected
+        regOpen &&             // reg-window open
+        eligible &&            // has proof
+        !isReg                 // not yet registered
+    },
   });
 
   const { data: simClm } = useSimulateContract({
@@ -402,11 +424,14 @@ function RoundTab({ roundId }) {
     functionName: 'claim',
     args: [roundId],
     account: address,
-    enabled:
-      !!address &&                     // wallet connected
-      !regOpen &&                      // registration period is over
-      isReg &&                         // wallet did register
-      !isClaim,                        // and hasn’t claimed yet
+    query: {
+      enabled:
+        !!address &&    // wallet connected
+        !regOpen &&    // registration is OVER
+        isReg &&    // wallet did register
+        !isClaim &&    // hasn’t claimed yet
+        eligible               // proof exists
+    },
   });
 
   const { writeContract: wReg, data: regHash } = useWriteContract();
@@ -441,10 +466,13 @@ function RoundTab({ roundId }) {
   };
 
   const onCheck = async () => {
-    const p = getProofForAddress(checkAddr, roundId); // pass roundId!
+    if (!validCheckAddr) {
+      setCheckRes({ eligible: false, invalid: true });
+      return;
+    }
+    const p = getProofForAddress(checkAddr, roundId);
     const eligible = p.length > 0;
-    let claimed = false; // you can implement real claim checks later
-    setCheckRes({ eligible, claimed });
+    setCheckRes({ eligible, invalid: false });
   };
 
   /* ───────────────────────── JSX ───────────────────────── */
@@ -485,9 +513,11 @@ function RoundTab({ roundId }) {
             {checkRes && checkAddr && (
               <p className={`text-center text-xs mt-1 mb-0 ${checkRes.eligible ? 'text-green-700' : 'text-red-500'
                 }`}>
-                {checkRes.eligible
-                  ? 'Wallet is on the whitelist.'
-                  : 'Wallet is NOT on the whitelist.'}
+                {checkRes.invalid
+                  ? 'Input is not an Ethereum address.'
+                  : checkRes.eligible
+                    ? 'Wallet is on the whitelist.'
+                    : 'Wallet is not on the whitelist.'}
               </p>
             )}
           </div>
@@ -520,7 +550,7 @@ function RoundTab({ roundId }) {
                 }`} >
                 {eligible
                   ? 'Your wallet is on the whitelist.'
-                  : 'Your wallet is NOT on the whitelist.'}
+                  : 'Your wallet is not on the whitelist.'}
               </p>
             )}
           </div>
