@@ -686,7 +686,7 @@ function FaucetTab() {
 
 export default function Airdrop() {
 
-  const [activeTab, setActiveTab] = useState('round1'); // default tab
+  const [activeTab, setActiveTab] = useState('round2'); // default tab
 
   const TAB_ADDRESS = activeTab === 'faucet' ? FAUCET_ADDRESS : activeTab === 'round1' ? CONTRACT_ADDRESS : CLAIM_V2_ADDRESS;
 
@@ -694,7 +694,7 @@ export default function Airdrop() {
     <div style={{ display: 'flex', flexDirection: 'column', position: "relative", minWidth: 380 }}>
       <ConnectButton95 />
       <div className="mt-2">
-        <Tabs defaultActiveTab="Round 1" onChange={(title) => {
+        <Tabs defaultActiveTab="Round 2" onChange={(title) => {
           if (title === 'Faucet') setActiveTab('faucet');
           else if (title === 'Round 1') setActiveTab('round1');
           else setActiveTab('round2');
