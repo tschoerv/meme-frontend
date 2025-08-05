@@ -13,11 +13,27 @@
   color: #6A9955;   /* VS-Code-style green */
 }
 
-pre[class*="language-"] {          /* kill the scrollbars */
-  overflow: hidden;                /* or  overflow-x:hidden; overflow-y:auto; */
+pre[class*="language-"] {
   font-size: 14px;
   margin-top: 0;
   margin-bottom: 0;
+  overflow: hidden;              /* desktop: hide scrollbars */
+  max-width: 100%;               /* don't exceed container width */
+  width: 100%;                   /* take full available width */
+}
+
+/* Mobile responsive styling */
+@media (max-width: 640px) {
+  pre[class*="language-"] {
+    font-size: 12px !important;   /* smaller font on mobile */
+    padding: 14px !important;     /* less padding on mobile */
+    padding-bottom: 7px !important;
+    overflow-x: auto !important;  /* force horizontal scroll if needed */
+    overflow-y: hidden !important;
+    white-space: nowrap !important; /* prevent line wrapping to force horizontal scroll */
+    max-width: calc(100vw - 66px) !important; /* constrain to viewport width minus modal padding */
+    width: calc(100vw - 66px) !important;     /* force specific width */
+  }
 }
 
 @theme {

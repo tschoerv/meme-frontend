@@ -23,7 +23,7 @@ export default function MemeLore() {
         In the early ERC-20 days of 2016, an anonymous dev dropped a tiny token contract called Meme. It’s a minimal, 0-decimal ERC-20 — not even a ticker symbol! The twist? Minting was gated behind the on-chain riddle <code>rewardMathGeniuses()</code>, which only hands out one token when you supply the exact cube root of the current challenge.
       </p>
 
-      <p className='mb-4 mt-0'>
+      <p className='mb-4 md:mt-0 mt-4'>
         The deployer quietly minted <strong>257 MEME</strong> and vanished. To honor the creator, MemeDAO has locked 2.5% of the supply to be <a
           href="https://etherscan.io/address/0x575c2466325d21ccd1b830d567015ea5ad270ab9"
           target="_blank"
@@ -40,14 +40,10 @@ export default function MemeLore() {
         >0x8496…38cf</a></span>
       </div>
 
-      <div >
-        <pre
-      /* Tailwind gives us the “editor card” look */
-      className="bg-[#2d2d2d] rounded-md p-4 my-0"
-    >
-      {/* Prism needs <code> with a language-* class */}
-      <code className="language-solidity">{code}</code>
-    </pre>
+      <div>
+        <pre className="bg-[#2d2d2d] rounded-md p-4 my-0">
+          <code className="language-solidity">{code}</code>
+        </pre>
       </div>
 
        <p className="mb-2 mt-2">
