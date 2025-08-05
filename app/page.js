@@ -24,6 +24,7 @@ import Image from 'next/image';
 
 /* ─── your components ─── */
 import Airdrop     from './components/Airdrop';
+import Presale     from './components/Presale';
 import MemeInfo    from './components/MemeInfo';
 import MemeDAO     from './components/MemeDAO';
 import Socials     from './components/Socials';
@@ -45,13 +46,9 @@ function StartMenu({ open }) {
         <List.Item icon={<Drvspace1   variant="32x32_4" />} onClick={() => open('tokenomics')} style={{ cursor: 'pointer' }}>
           Tokenomics
         </List.Item>
-        <Tooltip text="soon!" delay={300}>
-          <List.Item icon={<Sysmon1000 variant="32x32_4" />}
-                     onClick={() => alert('soon!')}
-                     style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>
-            Presale
-          </List.Item>
-        </Tooltip>
+        <List.Item icon={<Sysmon1000 variant="32x32_4" />} onClick={() => open('presale')} style={{ cursor: 'pointer' }}>
+          Presale
+        </List.Item>
         <List.Item icon={<Shell3242  variant="32x32_4" />} onClick={() => open('info')} style={{ cursor: 'pointer' }}>
           Lore
         </List.Item>
@@ -72,6 +69,7 @@ function MemeHomepage() {
   const [show, setShow] = useState({
     logo      : false,
     airdrop   : false,
+    presale   : false,
     tokenomics: false,
     info      : false,
     dao       : false,
@@ -180,6 +178,23 @@ function MemeHomepage() {
         >
           <Modal.Content width={400} height={210} boxShadow="$in">
             <Airdrop />
+          </Modal.Content>
+        </Modal>
+      )}
+
+      {show.presale && (
+        <Modal
+          id="presale"
+          title="Presale.exe"
+          icon={<Optional3000 variant="16x16_4" />}
+          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          titleBarOptions={[
+            <Modal.Minimize key="min" />,
+            <TitleBar.Close key="x" onClick={() => close('presale')} />
+          ]}
+        >
+          <Modal.Content width={400} height={210} boxShadow="$in">
+            <Presale />
           </Modal.Content>
         </Modal>
       )}
