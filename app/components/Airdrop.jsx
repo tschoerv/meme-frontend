@@ -257,7 +257,7 @@ function Round2ClaimTab() {
           Amount Claimed: {totalClaimed} / 34,500 {TOKEN_SYMBOL}
         </Checkbox>
 
-        <Checkbox readOnly checked>
+        <Checkbox readOnly checked={eligible}>
           <Tooltip text="Same as Round 1 + all holders of Etheria, PixelMap, Peperium, CurioCards, v1&v2 Punks and MoonCats at block 23031420." delay={300}>
             <u>Eligibility Criteria</u>
           </Tooltip>
@@ -267,7 +267,7 @@ function Round2ClaimTab() {
           readOnly
           checked={!!(
             caller &&
-            beneficiary &&
+            isEthAddress(beneficiary) &&
             caller.toLowerCase() !== beneficiary.toLowerCase()
           )}
         >
@@ -328,15 +328,15 @@ function Round2ClaimTab() {
 
           {beneficiary && !alreadyClaimed && !slotUsed && (
             !validAddr ? (
-              <p className="text-center text-xs mt-2 mb-2 text-red-500">
+              <p className="text-center text-xs mt-2 mb-0 text-red-500">
                 Input is not an Ethereum address.
               </p>
             ) : !eligible ? (
-              <p className="text-center text-xs mt-2 mb-2 text-red-500">
+              <p className="text-center text-xs mt-2 mb-0 text-red-500">
                 Wallet is not on the whitelist.
               </p>
             ) : (
-              <p className="text-center text-xs mt-2 mb-2 text-green-700">
+              <p className="text-center text-xs mt-2 mb-0 text-green-700">
                 Eligible to claim 100 MEME!
               </p>
             )
@@ -484,7 +484,7 @@ function RoundTab({ roundId }) {
         </Checkbox>
         <Checkbox readOnly checked={!!registrantCount}>Registrant Count: {registrantCount}</Checkbox>
         <Checkbox readOnly checked>Pool allocation: 34,521 MEME (5%)</Checkbox>
-        <Checkbox readOnly checked><Tooltip text="Holders of ≥ 100 WAAC, 15 WMC, 1000 btc, 100 FART and 100 MUTATIO/FLIES. Snapshot at block 22849225." delay={300}><u>Eligibility Criteria</u></Tooltip></Checkbox>
+        <Checkbox readOnly checked={eligible}><Tooltip text="Holders of ≥ 100 WAAC, 15 WMC, 1000 btc, 100 FART and 100 MUTATIO/FLIES. Snapshot at block 22849225." delay={300}><u>Eligibility Criteria</u></Tooltip></Checkbox>
       </Fieldset>
 
       {regOpen && (
@@ -542,11 +542,11 @@ function RoundTab({ roundId }) {
 
             {/* helper caption */}
             {isReg ? (
-              <p className="text-center text-xs mt-2 mb-2">
+              <p className="text-center text-xs mt-2 mb-0">
                 Waiting for the round to close...
               </p>
             ) : (
-              <p className={`text-center text-xs mt-2 mb-2 ${eligible ? 'text-green-700' : 'text-red-500'
+              <p className={`text-center text-xs mt-2 mb-0 ${eligible ? 'text-green-700' : 'text-red-500'
                 }`} >
                 {eligible
                   ? 'Your wallet is on the whitelist.'
