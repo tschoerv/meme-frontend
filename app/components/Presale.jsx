@@ -133,7 +133,9 @@ function PresaleTab() {
 
   const {
     data: simBuy,
+    error: simError,
     status: simStatus,
+    refetch: refetchSim,
   } = useSimulateContract({
     address: PRESALE_ADDRESS,
     abi: PRESALE_ABI,
@@ -145,6 +147,28 @@ function PresaleTab() {
     enabled: hasContract && isConnected && eligible && ethValue > 0n && !alreadyClaimed && !delegateUsed
     }
   });
+
+  /* retry sim once per second while round open but sim reverts w/ claim-not-open */
+    const lastTryRef = useRef(0);
+    useEffect(() => {
+      if (!hasContract) return;
+  
+      const claimNotOpen =
+        simStatus === 'error' &&
+        /Sale not open yet/i.test(simError?.shortMessage || '');
+  
+      const needRetry =
+        isOpen && isConnected && eligible && !alreadyClaimed && !slotUsed && claimNotOpen;
+  
+      const now = Date.now();
+      if (needRetry && now - lastTryRef.current > 500) {
+        lastTryRef.current = now;
+        refetchSim();
+      }
+    }, [
+      hasContract, isOpen, isConnected, eligible,
+      alreadyClaimed, delegateUsed, simStatus, simError, refetchSim,
+    ]);
 
   const { writeContract, data: txHash } = useWriteContract();
   const { isSuccess: mined } = useWaitForTransactionReceipt({ hash: txHash });
