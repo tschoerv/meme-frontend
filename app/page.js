@@ -24,7 +24,7 @@ import Image from 'next/image';
 
 /* ─── your components ─── */
 import Airdrop     from './components/Airdrop';
-import Presale     from './components/Presale';
+import Presale     from './components/PresaleModal';
 import MemeInfo    from './components/MemeInfo';
 import MemeDAO     from './components/MemeDAO';
 import Socials     from './components/Socials';
@@ -194,7 +194,7 @@ function MemeHomepage() {
           ]}
         >
           <Modal.Content width={400} height={210} boxShadow="$in">
-            <Presale />
+            <Presale/>
           </Modal.Content>
         </Modal>
       )}
