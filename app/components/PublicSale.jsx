@@ -26,6 +26,7 @@ const PUBLIC_SALE_ADDRESS = process.env.NEXT_PUBLIC_PUBLIC_SALE_ADDRESS;
 const maxAllocation = '0.1';
 const weiPerToken = 28968713789107n;
 const totalSaleAmount = 103560;
+const PRESET_PUBLIC_SALE_OPENS_AT = 1754582400;
 
 function formatTime(t) {
   const d = Math.floor(t / 86400);
@@ -80,7 +81,7 @@ export default function PublicSaleTab() {
     enabled: hasContract && !!caller,
   });
 
-  const openTime = hasContract ? (saleOpensAt ? Number(saleOpensAt) : 0) : 0;
+  const openTime = hasContract ? (saleOpensAt ? Number(saleOpensAt) : 0) : PRESET_PUBLIC_SALE_OPENS_AT;
   const isOpen = hasContract && !isPaused && openTime !== 0 && nowTs >= openTime;
   const beforeOpen = openTime !== 0 && nowTs < openTime;
   const timeLeft = formatTime(Math.max(openTime - nowTs, 0));
@@ -168,14 +169,20 @@ export default function PublicSaleTab() {
     <div style={{ minWidth: 330 }}>
       <Fieldset legend="Sale Status" width="350px" className="flex flex-col mb-3">
         <Checkbox readOnly checked={isOpen}>
-          {isOpen
-            ? 'Public Sale Open'
-            : beforeOpen
-              ? `Public Sale Opens in ${timeLeft}`
-              : 'Public Sale Closed'}
+          {hasContract ? (
+            isOpen
+              ? 'Public Sale Open'
+              : beforeOpen
+                ? `Public Sale Opens in ${timeLeft}`
+                : 'Public Sale Closed'
+          ) : (
+            beforeOpen
+              ? `Round Opens in ${timeLeft}`
+              : 'Round Closed'
+          )}
         </Checkbox>
 
-        <Checkbox readOnly checked={hasContract}>
+        <Checkbox readOnly>
           Max Allocation: {maxAllocation} ETH per wallet
         </Checkbox>
 

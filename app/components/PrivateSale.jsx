@@ -28,6 +28,7 @@ const PRIVATE_SALE_ADDRESS = process.env.NEXT_PUBLIC_PRIVATE_SALE_ADDRESS;
 const maxAllocation = '0.1';
 const weiPerToken = 28968713789107n;
 const totalSaleAmount = 103560;
+const PRESET_PRIVATE_SALE_OPENS_AT = 1754582400;
 
 function getProofForPresale(addr) {
   if (!addr) return [];
@@ -101,7 +102,7 @@ export default function PrivateSaleTab() {
     if (isConnected && caller) setBeneficiary(caller);
   }, [isConnected, caller]);
 
-  const openTime = hasContract ? (saleOpensAt ? Number(saleOpensAt) : 0) : 0;
+  const openTime = hasContract ? (saleOpensAt ? Number(saleOpensAt) : 0) : PRESET_PRIVATE_SALE_OPENS_AT;
   const isOpen = hasContract && !isPaused && openTime !== 0 && nowTs >= openTime;
   const beforeOpen = openTime !== 0 && nowTs < openTime;
   const timeLeft = formatTime(Math.max(openTime - nowTs, 0));
@@ -203,14 +204,20 @@ export default function PrivateSaleTab() {
     <div style={{ minWidth: 330 }}>
       <Fieldset legend="Sale Status" width="350px" className="flex flex-col mb-3">
         <Checkbox readOnly checked={isOpen}>
-          {isOpen
-            ? 'Private Sale Open'
-            : beforeOpen
-              ? `Private Sale Opens in ${timeLeft}`
-              : 'Private Sale Closed'}
+          {hasContract ? (
+            isOpen
+              ? 'Private Sale Open'
+              : beforeOpen
+                ? `Private Sale Opens in ${timeLeft}`
+                : 'Private Sale Closed'
+          ) : (
+            beforeOpen
+              ? `Round Opens in ${timeLeft}`
+              : 'Round Closed'
+          )}
         </Checkbox>
 
-        <Checkbox readOnly checked={hasContract}>
+        <Checkbox readOnly>
           Max Allocation: {maxAllocation} ETH per wallet
         </Checkbox>
 
