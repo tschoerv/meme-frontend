@@ -4,11 +4,9 @@ import { useState } from 'react';
 import {
   TaskBar,
   List,
-  Tooltip,
   Modal,
   TitleBar,
   Button,
-  Cursor,
   useModal,
 } from '@react95/core';
 import {
