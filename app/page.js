@@ -43,11 +43,11 @@ function StartMenu({ open }) {
         <List.Item icon={<Optional3000 variant="32x32_4" />} onClick={() => open('airdrop')}   style={{ cursor: 'pointer' }}>
           Airdrop
         </List.Item>
-        <List.Item icon={<Drvspace1   variant="32x32_4" />} onClick={() => open('tokenomics')} style={{ cursor: 'pointer' }}>
-          Tokenomics
-        </List.Item>
         <List.Item icon={<Sysmon1000 variant="32x32_4" />} onClick={() => open('presale')} style={{ cursor: 'pointer' }}>
           Presale
+        </List.Item>
+        <List.Item icon={<Drvspace1   variant="32x32_4" />} onClick={() => open('tokenomics')} style={{ cursor: 'pointer' }}>
+          Tokenomics
         </List.Item>
         <List.Item icon={<Shell3242  variant="32x32_4" />} onClick={() => open('info')} style={{ cursor: 'pointer' }}>
           Lore
