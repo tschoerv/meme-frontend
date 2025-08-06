@@ -75,7 +75,7 @@ export default function PublicSaleTab() {
   const { data: alreadyPurchased, queryKey: purchasedKey } = useReadContract({
     address: PUBLIC_SALE_ADDRESS,
     abi: PUBLIC_SALE_ABI,
-    functionName: 'purchased',
+    functionName: 'hasPurchased',
     args: [caller],
     enabled: hasContract && !!caller,
   });

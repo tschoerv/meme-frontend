@@ -48,7 +48,6 @@ export default function PrivateSaleTab() {
   const qc = useQueryClient();
   const [beneficiary, setBeneficiary] = useState(caller ?? '');
   const [ethAmount, setEthAmount] = useState('0.1');
-  const [checked, setChecked] = useState(false);
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
 
   const hasContract =
@@ -75,8 +74,6 @@ export default function PrivateSaleTab() {
     enabled: hasContract,
   });
 
-
-
   const { data: tokensSold, queryKey: tokensSoldKey } = useReadContract({
     address: PRIVATE_SALE_ADDRESS,
     abi: PRIVATE_SALE_ABI,
@@ -84,10 +81,10 @@ export default function PrivateSaleTab() {
     enabled: hasContract,
   });
 
-  const { data: alreadyClaimed, queryKey: claimedKey } = useReadContract({
+  const { data: alreadyPurchased, queryKey: claimedKey } = useReadContract({
     address: PRIVATE_SALE_ADDRESS,
     abi: PRIVATE_SALE_ABI,
-    functionName: 'hasClaimed',
+    functionName: 'hasPurchased',
     args: [beneficiary],
     enabled: hasContract && !!beneficiary,
   });
@@ -133,7 +130,7 @@ export default function PrivateSaleTab() {
     account: caller,
     value: ethValue,
     query: {
-    enabled: hasContract && isConnected && eligible && ethValue > 0n && !alreadyClaimed && !delegateUsed
+    enabled: hasContract && isConnected && eligible && ethValue > 0n && !alreadyPurchased && !delegateUsed
     }
   });
 
@@ -147,7 +144,7 @@ export default function PrivateSaleTab() {
         /Sale not open/i.test(simError?.shortMessage || '');
   
       const needRetry =
-        isOpen && isConnected && eligible && !alreadyClaimed && !delegateUsed && claimNotOpen;
+        isOpen && isConnected && eligible && !alreadyPurchased && !delegateUsed && claimNotOpen;
   
       const now = Date.now();
       if (needRetry && now - lastTryRef.current > 500) {
@@ -156,7 +153,7 @@ export default function PrivateSaleTab() {
       }
     }, [
       hasContract, isOpen, isConnected, eligible,
-      alreadyClaimed, delegateUsed, simStatus, simError, refetchSim,
+      alreadyPurchased, delegateUsed, simStatus, simError, refetchSim,
     ]);
 
   const { writeContract, data: txHash } = useWriteContract();
@@ -168,7 +165,7 @@ export default function PrivateSaleTab() {
     isConnected &&
     isOpen &&
     eligible &&
-    !alreadyClaimed &&
+    !alreadyPurchased &&
     !delegateUsed &&
     ethValue > 0n &&
     ethValue <= parseEther(maxAllocation) &&
@@ -181,7 +178,7 @@ export default function PrivateSaleTab() {
     buyPending ? 'Pending…' :
       isSoldOut ? 'Sold Out' :
       !isConnected ? 'Connect Wallet' :
-        alreadyClaimed ? 'Already Purchased' :
+        alreadyPurchased ? 'Already Purchased' :
           delegateUsed ? 'Delegate Slot Used' :
             beforeOpen ? 'Starts Soon' :
               !eligible ? 'Not Eligible' :
@@ -246,7 +243,7 @@ export default function PrivateSaleTab() {
         <Input
           placeholder="Wallet Address"
           value={beneficiary}
-          onChange={e => { setBeneficiary(e.target.value); setChecked(false); }}
+          onChange={e => { setBeneficiary(e.target.value)}}
           className="w-80"
         /></Fieldset>
 
@@ -283,7 +280,7 @@ export default function PrivateSaleTab() {
           {buyLabel}
         </Button>
 
-        {beneficiary && !alreadyClaimed && !delegateUsed && (
+        {beneficiary && !alreadyPurchased && !delegateUsed && (
           !validAddr ? (
             <p className="text-center text-xs mt-2 mb-0 text-red-500">
               Input is not an Ethereum address.
