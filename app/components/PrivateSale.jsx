@@ -18,13 +18,16 @@ import {
 } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { isEthAddress } from '../utils/isAddress.js';
-import { parseEther, formatEther } from 'viem';
+import { parseEther } from 'viem';
 
 import proofsPresale from '../proofs_test.js';
 import { PRIVATE_SALE_ABI } from '../abi/privateSaleAbi';
 
 const TOKEN_SYMBOL = 'MEME';
 const PRIVATE_SALE_ADDRESS = process.env.NEXT_PUBLIC_PRIVATE_SALE_ADDRESS;
+const maxAllocation = '0.1';
+const weiPerToken = 28968713789107n;
+const totalSaleAmount = 103560;
 
 function getProofForPresale(addr) {
   if (!addr) return [];
@@ -72,19 +75,7 @@ export default function PrivateSaleTab() {
     enabled: hasContract,
   });
 
-  const { data: maxAllocation } = useReadContract({
-    address: PRIVATE_SALE_ADDRESS,
-    abi: PRIVATE_SALE_ABI,
-    functionName: 'MAX_ALLOCATION',
-    enabled: hasContract,
-  });
 
-  const { data: weiPerToken } = useReadContract({
-    address: PRIVATE_SALE_ADDRESS,
-    abi: PRIVATE_SALE_ABI,
-    functionName: 'weiPerToken',
-    enabled: hasContract,
-  });
 
   const { data: tokensSold, queryKey: tokensSoldKey } = useReadContract({
     address: PRIVATE_SALE_ADDRESS,
@@ -122,10 +113,12 @@ export default function PrivateSaleTab() {
   const validAddr = isEthAddress(beneficiary);
   const eligible = validAddr && proof.length > 0;
 
-  const ethValue = ethAmount ? parseEther(ethAmount) : 0n;
-  const maxEth = maxAllocation ? formatEther(maxAllocation) : '0.1';
+  const isValidEthAmount = ethAmount && /^[0-9]*\.?[0-9]*$/.test(ethAmount) && ethAmount !== '.' && ethAmount !== '';
+  const ethValue = isValidEthAmount ? parseEther(ethAmount) : 0n;
   
   const tokensToReceive = weiPerToken && ethValue > 0n ? ethValue / weiPerToken : 0n;
+
+  const isSoldOut = tokensSold && Number(tokensSold) >= totalSaleAmount;
 
   const {
     data: simBuy,
@@ -143,12 +136,6 @@ export default function PrivateSaleTab() {
     enabled: hasContract && isConnected && eligible && ethValue > 0n && !alreadyClaimed && !delegateUsed
     }
   });
-
-  useEffect(( )=> {
-    console.log(simError);
-  },[
-      simError
-    ])
 
   /* retry sim once per second while round open but sim reverts w/ claim-not-open */
     const lastTryRef = useRef(0);
@@ -184,20 +171,24 @@ export default function PrivateSaleTab() {
     !alreadyClaimed &&
     !delegateUsed &&
     ethValue > 0n &&
-    ethValue <= (maxAllocation || parseEther('0.1')) &&
+    ethValue <= parseEther(maxAllocation) &&
     simStatus === 'success' &&
     !!simBuy?.request &&
-    !buyPending;
-
+    !buyPending &&
+    !isSoldOut;
+  
   const buyLabel =
     buyPending ? 'Pending…' :
-      alreadyClaimed ? 'Already Purchased' :
-        delegateUsed ? 'Delegate Slot Used' :
-          !eligible ? 'Not Eligible' :
-            !ethAmount ? 'Enter ETH Amount' :
-                caller && beneficiary && caller.toLowerCase() !== beneficiary.toLowerCase()
-                  ? 'Delegate Buy'
-                  : 'Buy MEME';
+      isSoldOut ? 'Sold Out' :
+      !isConnected ? 'Connect Wallet' :
+        alreadyClaimed ? 'Already Purchased' :
+          delegateUsed ? 'Delegate Slot Used' :
+            beforeOpen ? 'Starts Soon' :
+              !eligible ? 'Not Eligible' :
+                !ethAmount ? 'Enter ETH Amount' :
+                    caller && beneficiary && caller.toLowerCase() !== beneficiary.toLowerCase()
+                      ? 'Delegate Buy'
+                      : 'Buy MEME';
 
   const handleBuy = () => {
     if (simBuy?.request) writeContract(simBuy.request);
@@ -211,9 +202,6 @@ export default function PrivateSaleTab() {
     }
   }, [mined, claimedKey, tokensSoldKey, delegateKey, qc]);
 
-  const showManual = !hasContract || !isOpen || !isConnected;
-  const showBuy = hasContract && isOpen && isConnected;
-
   return (
     <div style={{ minWidth: 330 }}>
       <Fieldset legend="Sale Status" width="350px" className="flex flex-col mb-3">
@@ -226,11 +214,11 @@ export default function PrivateSaleTab() {
         </Checkbox>
 
         <Checkbox readOnly checked={hasContract}>
-          Max Allocation: {maxEth} ETH per wallet
+          Max Allocation: {maxAllocation} ETH per wallet
         </Checkbox>
 
-        <Checkbox readOnly checked={!!tokensSold || hasContract}>
-          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/ 103,560"} {TOKEN_SYMBOL}
+        <Checkbox readOnly checked={!!tokensSold && hasContract}>
+          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/"} {Number(totalSaleAmount).toLocaleString('en-US')} {TOKEN_SYMBOL}
         </Checkbox>
 
         <Checkbox readOnly checked ={eligible}>
@@ -253,91 +241,64 @@ export default function PrivateSaleTab() {
         </Checkbox>
       </Fieldset>
 
-      {showManual && (
-        <div className="flex flex-col items-center space-y-2">
+      <div className="flex flex-col items-center justify-center mt-2">
+        <Fieldset legend={!isConnected ? "Check Eligibility" : "Recipient"} width="350px">
+        <Input
+          placeholder="Wallet Address"
+          value={beneficiary}
+          onChange={e => { setBeneficiary(e.target.value); setChecked(false); }}
+          className="w-80"
+        /></Fieldset>
+
+        <div className="flex items-center justify-center mb-2 mt-2">
           <Input
-            placeholder="Wallet Address"
-            value={beneficiary}
-            onChange={e => { setBeneficiary(e.target.value); setChecked(false); }}
-            className="w-80"
-          />
-
-          <Button
-            className="w-80"
-            onClick={() => setChecked(true)}
-            style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
-          >
-            Check Eligibility
-          </Button>
-
-          {checked && beneficiary && (
-            <p className={`text-center text-xs mt-1 mb-0 ${validAddr && eligible ? 'text-green-700' : 'text-red-500'}`}>
-              {validAddr
-                ? eligible
-                  ? 'Wallet is on the whitelist.'
-                  : 'Wallet is not on the whitelist.'
-                : 'Input is not an Ethereum address.'}
-            </p>
-          )}
-        </div>
-      )}
-
-      {showBuy && (
-        <div className="flex flex-col items-center justify-center mt-2">
-          <Fieldset legend="Recipient" width="350px">
-          <Input
-            placeholder="Wallet Address"
-            value={beneficiary}
-            onChange={e => { setBeneficiary(e.target.value); setChecked(false); }}
-            className="w-80"
-          /></Fieldset>
-
-          <div className="flex items-center justify-center mb-2 mt-2">
-            <Input
-              placeholder="0.1"
-              value={ethAmount}
-              onChange={e => {
-                const value = e.target.value;
-                if (value === '' || (parseFloat(value) <= 0.1 && parseFloat(value) >= 0)) {
-                  setEthAmount(value);
-                }
-              }}
-              className="w-[45px] mr-2"
-              type="number"
-              step="0.01"
-              max={maxEth}
-            />
-            <span className="text-sm mr-1 mt-0.5">ETH = </span>
-            <span className="text-sm mt-0.5 text-blue-900">
-              {ethAmount && tokensToReceive > 0n 
-                ? `${Number(tokensToReceive).toLocaleString('en-US')} ${TOKEN_SYMBOL}`
-                : `0 ${TOKEN_SYMBOL}`
+            placeholder="0.1"
+            value={ethAmount}
+            onChange={e => {
+              const value = e.target.value;
+              if (value === '' || (parseFloat(value) <= parseFloat(maxAllocation) && parseFloat(value) >= 0)) {
+                setEthAmount(value);
               }
-            </span>
-          </div>
-
-          <Button
-            disabled={!canBuy}
-            onClick={handleBuy}
-            className="w-80"
-            style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
-          >
-            {buyLabel}
-          </Button>
-
-          {beneficiary && !alreadyClaimed && !delegateUsed && (
-            !validAddr ? (
-              <p className="text-center text-xs mt-2 mb-0 text-red-500">
-                Input is not an Ethereum address.
-              </p>
-            ) : !eligible && (
-              <p className="text-center text-xs mt-2 mb-0 text-red-500">
-                Wallet is not on the whitelist.
-              </p>
-            )
-          )}
+            }}
+            className="w-[45px] mr-2"
+            type="number"
+            step="0.01"
+            max={maxAllocation}
+          />
+          <span className="text-sm mr-1 mt-0.5">ETH = </span>
+          <span className="text-sm mt-0.5 text-blue-900">
+            {ethAmount && tokensToReceive > 0n 
+              ? `${Number(tokensToReceive).toLocaleString('en-US')} ${TOKEN_SYMBOL}`
+              : `0 ${TOKEN_SYMBOL}`
+            }
+          </span>
         </div>
-      )}
+
+        <Button
+          disabled={!canBuy}
+          onClick={handleBuy}
+          className="w-80"
+          style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
+        >
+          {buyLabel}
+        </Button>
+
+        {beneficiary && !alreadyClaimed && !delegateUsed && (
+          !validAddr ? (
+            <p className="text-center text-xs mt-2 mb-0 text-red-500">
+              Input is not an Ethereum address.
+            </p>
+          ) : !eligible ? (
+            <p className="text-center text-xs mt-2 mb-0 text-red-500">
+              Wallet is not on the whitelist.
+            </p>
+          ) : (
+            <p className="text-center text-xs mt-2 mb-0 text-green-700">
+              Wallet is on the whitelist!
+            </p>
+          )
+        )}
+      </div>
     </div>
   );
 }

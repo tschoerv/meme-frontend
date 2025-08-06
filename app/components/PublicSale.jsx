@@ -17,12 +17,15 @@ import {
   useWaitForTransactionReceipt,
 } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
-import { parseEther, formatEther } from 'viem';
+import { parseEther } from 'viem';
 
 import { PUBLIC_SALE_ABI } from '../abi/publicSaleAbi';
 
 const TOKEN_SYMBOL = 'MEME';
 const PUBLIC_SALE_ADDRESS = process.env.NEXT_PUBLIC_PUBLIC_SALE_ADDRESS;
+const maxAllocation = '0.1';
+const weiPerToken = 28968713789107n;
+const totalSaleAmount = 103560;
 
 function formatTime(t) {
   const d = Math.floor(t / 86400);
@@ -62,20 +65,6 @@ export default function PublicSaleTab() {
     enabled: hasContract,
   });
 
-  const { data: maxAllocation } = useReadContract({
-    address: PUBLIC_SALE_ADDRESS,
-    abi: PUBLIC_SALE_ABI,
-    functionName: 'MAX_ALLOCATION',
-    enabled: hasContract,
-  });
-
-  const { data: weiPerToken } = useReadContract({
-    address: PUBLIC_SALE_ADDRESS,
-    abi: PUBLIC_SALE_ABI,
-    functionName: 'weiPerToken',
-    enabled: hasContract,
-  });
-
   const { data: tokensSold, queryKey: tokensSoldKey } = useReadContract({
     address: PUBLIC_SALE_ADDRESS,
     abi: PUBLIC_SALE_ABI,
@@ -96,10 +85,12 @@ export default function PublicSaleTab() {
   const beforeOpen = openTime !== 0 && nowTs < openTime;
   const timeLeft = formatTime(Math.max(openTime - nowTs, 0));
 
-  const ethValue = ethAmount ? parseEther(ethAmount) : 0n;
-  const maxEth = maxAllocation ? formatEther(maxAllocation) : '0.1';
+  const isValidEthAmount = ethAmount && /^[0-9]*\.?[0-9]*$/.test(ethAmount) && ethAmount !== '.' && ethAmount !== '';
+  const ethValue = isValidEthAmount ? parseEther(ethAmount) : 0n;
   
   const tokensToReceive = weiPerToken && ethValue > 0n ? ethValue / weiPerToken : 0n;
+
+  const isSoldOut = tokensSold && Number(tokensSold) >= totalSaleAmount;
 
   const {
     data: simBuy,
@@ -147,17 +138,20 @@ export default function PublicSaleTab() {
     isOpen &&
     !alreadyPurchased &&
     ethValue > 0n &&
-    ethValue <= (maxAllocation || parseEther('0.1')) &&
+    ethValue <= (parseEther(maxAllocation)) &&
     simStatus === 'success' &&
     !!simBuy?.request &&
-    !buyPending;
-
+    !buyPending &&
+    !isSoldOut;
+  
   const buyLabel =
     buyPending ? 'Pending…' :
-      alreadyPurchased ? 'Already Purchased' :
-        !ethAmount ? 'Enter ETH Amount' :
-          ethValue > (maxAllocation || parseEther('0.1')) ? 'Amount Too High' :
-            'Buy MEME';
+      isSoldOut ? 'Sold Out' :
+      !isConnected ? 'Connect Wallet' :
+        alreadyPurchased ? 'Already Purchased' :
+          beforeOpen ? 'Starts Soon' :
+            !ethAmount ? 'Enter ETH Amount' :
+                'Buy MEME';
 
   const handleBuy = () => {
     if (simBuy?.request) writeContract(simBuy.request);
@@ -169,9 +163,6 @@ export default function PublicSaleTab() {
       qc.invalidateQueries({ queryKey: tokensSoldKey });
     }
   }, [mined, purchasedKey, tokensSoldKey, qc]);
-
-  const showManual = !hasContract || !isOpen || !isConnected;
-  const showBuy = hasContract && isOpen && isConnected;
 
   return (
     <div style={{ minWidth: 330 }}>
@@ -185,11 +176,11 @@ export default function PublicSaleTab() {
         </Checkbox>
 
         <Checkbox readOnly checked={hasContract}>
-          Max Allocation: {maxEth} ETH per wallet
+          Max Allocation: {maxAllocation} ETH per wallet
         </Checkbox>
 
-        <Checkbox readOnly checked={!!tokensSold || hasContract}>
-          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/ 103,560"} {TOKEN_SYMBOL}
+        <Checkbox readOnly checked={!!tokensSold && hasContract}>
+          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/"} {Number(totalSaleAmount).toLocaleString('en-US')} {TOKEN_SYMBOL}
         </Checkbox>
 
         <Checkbox readOnly checked>
@@ -199,15 +190,6 @@ export default function PublicSaleTab() {
         </Checkbox>
       </Fieldset>
 
-      {showManual && (
-        <div className="flex flex-col items-center space-y-2">
-          <p className="text-center text-sm">
-            Connect your wallet to participate in the public sale
-          </p>
-        </div>
-      )}
-
-      {showBuy && (
         <div className="flex flex-col items-center justify-center mt-2">
           <div className="flex items-center justify-center mb-2 mt-0">
             <Input
@@ -215,14 +197,14 @@ export default function PublicSaleTab() {
               value={ethAmount}
               onChange={e => {
                 const value = e.target.value;
-                if (value === '' || (parseFloat(value) <= parseFloat(maxEth) && parseFloat(value) >= 0)) {
+                if (value === '' || (parseFloat(value) <= parseFloat(maxAllocation) && parseFloat(value) >= 0)) {
                   setEthAmount(value);
                 }
               }}
               className="w-[45px] mr-2"
               type="number"
               step="0.01"
-              max={maxEth}
+              max={maxAllocation}
             />
             <span className="text-sm mr-1 mt-0.5">ETH = </span>
             <span className="text-sm mt-0.5 text-blue-900">
@@ -242,7 +224,6 @@ export default function PublicSaleTab() {
             {buyLabel}
           </Button>
         </div>
-      )}
     </div>
   );
 }
