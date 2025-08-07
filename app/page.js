@@ -219,7 +219,7 @@ function MemeHomepage() {
                 rel="noopener noreferrer"
               >
                 <span>locked</span>
-              </a> 4.2% of his allocation until Aug, 2028.</p>
+              </a> 4.2% of the supply until Aug, 2028.</p>
             </div>
           </Modal.Content>
         </Modal>
