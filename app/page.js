@@ -212,6 +212,7 @@ function MemeHomepage() {
             <div className="flex flex-col items-center min-w-[400px] min-h-[380px]">
               <p className="text-sm text-center mb-6">MEME Tokenomics Overview</p>
               <Image src="/tokenomics_cropped.svg" alt="tokenomics" width={380} height={300} />
+              <p className='mt-4 text-xs'>100% of the funds raised in the Presale will go into the LP.</p>
             </div>
           </Modal.Content>
         </Modal>
