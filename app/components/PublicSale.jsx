@@ -23,7 +23,7 @@ import { PUBLIC_SALE_ABI } from '../abi/publicSaleAbi';
 
 const TOKEN_SYMBOL = 'MEME';
 const PUBLIC_SALE_ADDRESS = process.env.NEXT_PUBLIC_PUBLIC_SALE_ADDRESS;
-const MAX_ALLOCATION = '0.1';
+const MAX_ALLOCATION = '0.05';
 const WEI_PER_TOKEN = 28968713789107n;
 const TOTAL_SALE_AMOUNT = 103560;
 const PRESET_PUBLIC_SALE_OPENS_AT = 1754586000;
@@ -40,7 +40,7 @@ function formatTime(t) {
 export default function PublicSaleTab() {
   const { address: caller, isConnected } = useAccount();
   const qc = useQueryClient();
-  const [ethAmount, setEthAmount] = useState('0.1');
+  const [ethAmount, setEthAmount] = useState('0.05');
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
 
   const hasContract =
@@ -203,7 +203,7 @@ export default function PublicSaleTab() {
       <div className="flex flex-col items-center justify-center mt-2">
         <div className="flex items-center justify-center mb-2 mt-0">
           <Input
-            placeholder="0.1"
+            placeholder="0.05"
             value={ethAmount}
             onChange={e => {
               const value = e.target.value;

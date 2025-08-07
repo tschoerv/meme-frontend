@@ -21,7 +21,7 @@ export default function PresaleModal() {
     <div style={{ display: 'flex', flexDirection: 'column', position: "relative", minWidth: 380 }}>
       <ConnectButton95 />
       <div className="mt-2">
-        <Tabs defaultActiveTab="Private Sale" onChange={(title) => {
+        <Tabs defaultActiveTab="Public Sale" onChange={(title) => {
           if (title === 'Public Sale') setActiveTab('public');
           else setActiveTab('private');
         }}>
