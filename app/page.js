@@ -21,14 +21,14 @@ import {
 import Image from 'next/image';
 
 /* ─── your components ─── */
-import Airdrop     from './components/Airdrop';
-import Presale     from './components/PresaleModal';
-import MemeInfo    from './components/MemeInfo';
-import MemeDAO     from './components/MemeDAO';
-import Socials     from './components/Socials';
-import RecycleBin  from './components/RecycleBin';
+import Airdrop from './components/Airdrop';
+import Presale from './components/PresaleModal';
+import MemeInfo from './components/MemeInfo';
+import MemeDAO from './components/MemeDAO';
+import Socials from './components/Socials';
+import RecycleBin from './components/RecycleBin';
 import { DesktopProvider, useDesktop } from './contexts/DesktopContext';
-import { useIsTouchDevice }           from './hooks/useIsTouchDevice';
+import { useIsTouchDevice } from './hooks/useIsTouchDevice';
 /* ─────────────────────── */
 
 const slogan = 'First Meme on ETH';
@@ -38,19 +38,19 @@ function StartMenu({ open }) {
   return (
     <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 99_999, paddingTop: 29 }}>
       <List width={200}>
-        <List.Item icon={<Optional3000 variant="32x32_4" />} onClick={() => open('airdrop')}   style={{ cursor: 'pointer' }}>
+        <List.Item icon={<Optional3000 variant="32x32_4" />} onClick={() => open('airdrop')} style={{ cursor: 'pointer' }}>
           Airdrop
         </List.Item>
         <List.Item icon={<Sysmon1000 variant="32x32_4" />} onClick={() => open('presale')} style={{ cursor: 'pointer' }}>
           Presale
         </List.Item>
-        <List.Item icon={<Drvspace1   variant="32x32_4" />} onClick={() => open('tokenomics')} style={{ cursor: 'pointer' }}>
+        <List.Item icon={<Drvspace1 variant="32x32_4" />} onClick={() => open('tokenomics')} style={{ cursor: 'pointer' }}>
           Tokenomics
         </List.Item>
-        <List.Item icon={<Shell3242  variant="32x32_4" />} onClick={() => open('info')} style={{ cursor: 'pointer' }}>
+        <List.Item icon={<Shell3242 variant="32x32_4" />} onClick={() => open('info')} style={{ cursor: 'pointer' }}>
           Lore
         </List.Item>
-        <List.Item icon={<InfoBubble variant="32x32_4" />} onClick={() => open('dao')}  style={{ cursor: 'pointer' }}>
+        <List.Item icon={<InfoBubble variant="32x32_4" />} onClick={() => open('dao')} style={{ cursor: 'pointer' }}>
           MemeDAO
         </List.Item>
       </List>
@@ -60,23 +60,23 @@ function StartMenu({ open }) {
 
 /* ─── main desktop page ───────────────────────────────────────────── */
 function MemeHomepage() {
-  const isTouch            = useIsTouchDevice();
-  const { desktopItems }   = useDesktop();
-  const modal              = useModal();     
+  const isTouch = useIsTouchDevice();
+  const { desktopItems } = useDesktop();
+  const modal = useModal();
 
   const [show, setShow] = useState({
-    logo      : false,
-    airdrop   : false,
-    presale   : false,
+    logo: false,
+    airdrop: false,
+    presale: false,
     tokenomics: false,
-    info      : false,
-    dao       : false,
+    info: false,
+    dao: false,
   });
   const [openCount, setOpenCount] = useState(0);
 
   /* helpers -------------------------------------------------------- */
 
-  const open  = (id) => {
+  const open = (id) => {
     // ensure the element is mounted before focusing
     setShow((s) => ({ ...s, [id]: true }));
     setOpenCount((c) => c + 1); // Track how many modals have been opened
@@ -93,14 +93,14 @@ function MemeHomepage() {
   };
 
   const getDragPos = (indexOffset = 0) => {
-  const baseX = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 90;
-  const baseY = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 10;
+    const baseX = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 90;
+    const baseY = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 10;
 
-  return {
-    x: baseX + indexOffset * 20,
-    y: baseY + indexOffset * 20,
+    return {
+      x: baseX + indexOffset * 20,
+      y: baseY + indexOffset * 20,
+    };
   };
-};
 
   /* ---------------------------------------------------------------- */
   return (
@@ -114,8 +114,8 @@ function MemeHomepage() {
         <Button
           draggable
           onDragStart={(e) => e.dataTransfer.setData('text/plain', 'logo')}
-          onClick={ isTouch  ? () => open('logo') : undefined }
-          onDoubleClick={ !isTouch ? () => open('logo') : undefined }
+          onClick={isTouch ? () => open('logo') : undefined}
+          onDoubleClick={!isTouch ? () => open('logo') : undefined}
           style={{
             width: 78,
             background: 'transparent',
@@ -192,7 +192,7 @@ function MemeHomepage() {
           ]}
         >
           <Modal.Content width={400} height={210} boxShadow="$in">
-            <Presale/>
+            <Presale />
           </Modal.Content>
         </Modal>
       )}
@@ -212,7 +212,14 @@ function MemeHomepage() {
             <div className="flex flex-col items-center min-w-[400px] min-h-[380px]">
               <p className="text-sm text-center mb-6">MEME Tokenomics Overview</p>
               <Image src="/tokenomics_cropped.svg" alt="tokenomics" width={380} height={300} />
-              <p className='mt-4 text-xs'>100% of the funds raised in the Presale will go into the LP.</p>
+              <p className='mt-4 mb-1 text-xs'>• 100% of the funds raised in the Presale will go into the LP.</p>
+              <p className='mt-0 text-xs'>• tschoerv has <a
+                href={`https://etherscan.io/address/0x20aeDA288BA0B2b2A570590Ae693d3474710Bc46`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>locked</span>
+              </a> 4.2% of his allocation until Aug, 2028.</p>
             </div>
           </Modal.Content>
         </Modal>
