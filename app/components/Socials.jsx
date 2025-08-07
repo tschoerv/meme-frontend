@@ -30,24 +30,7 @@ export default function Socials() {
             <div className="flex gap-1 mt-13">
                 {renderIcon('telegram', 'Telegram', '/telegram.webp', 'https://t.me/memecoin2016')}
                 {renderIcon('x', 'X', '/x.webp', 'https://x.com/Memecoin2016')}
-                {desktopItems.dexscreener && (
-                    <Button
-                        draggable
-                        style={{
-                            width: 78,
-                            background: 'transparent',
-                            boxShadow: 'none',
-                            cursor: 'pointer',
-                        }}
-                        className="flex flex-col items-center space-y-1"
-                        onDragStart={(e) => e.dataTransfer.setData('text/plain', 'dexscreener')}
-                        onClick={isTouch ? () => alert('soon!') : undefined}
-                        onDoubleClick={!isTouch ? () => alert('soon!') : undefined}
-                    >
-                        <Image src="/dexscreener.webp" alt="Dexscreener" width={48} height={48} />
-                        <span className="text-xs text-center">Dexscreener</span>
-                    </Button>
-                )}
+                {renderIcon('dexscreener', 'Dexscreener', '/dexscreener.webp', 'https://dexscreener.com/ethereum/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420')}
                 {renderIcon('github', 'GitHub', '/github.webp', 'https://github.com/tschoerv/meme-frontend')}
             </div>
         </div>
