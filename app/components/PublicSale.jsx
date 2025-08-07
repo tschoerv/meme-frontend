@@ -23,10 +23,11 @@ import { PUBLIC_SALE_ABI } from '../abi/publicSaleAbi';
 
 const TOKEN_SYMBOL = 'MEME';
 const PUBLIC_SALE_ADDRESS = process.env.NEXT_PUBLIC_PUBLIC_SALE_ADDRESS;
-const maxAllocation = '0.1';
-const weiPerToken = 28968713789107n;
-const totalSaleAmount = 103560;
-const PRESET_PUBLIC_SALE_OPENS_AT = 1754582400;
+const MAX_ALLOCATION = '0.1';
+const WEI_PER_TOKEN = 28968713789107n;
+const TOTAL_SALE_AMOUNT = 103560;
+const PRESET_PUBLIC_SALE_OPENS_AT = 1754586000;
+const EARLY_BUFFER = 5;
 
 function formatTime(t) {
   const d = Math.floor(t / 86400);
@@ -82,16 +83,16 @@ export default function PublicSaleTab() {
   });
 
   const openTime = hasContract ? (saleOpensAt ? Number(saleOpensAt) : 0) : PRESET_PUBLIC_SALE_OPENS_AT;
-  const isOpen = hasContract && !isPaused && openTime !== 0 && nowTs >= openTime;
-  const beforeOpen = openTime !== 0 && nowTs < openTime;
+  const isOpen = hasContract && !isPaused && openTime !== 0 && nowTs >= (openTime - EARLY_BUFFER);
+  const beforeOpen = openTime !== 0 && nowTs < (openTime - EARLY_BUFFER);
   const timeLeft = formatTime(Math.max(openTime - nowTs, 0));
 
   const isValidEthAmount = ethAmount && /^[0-9]*\.?[0-9]*$/.test(ethAmount) && ethAmount !== '.' && ethAmount !== '';
   const ethValue = isValidEthAmount ? parseEther(ethAmount) : 0n;
-  
-  const tokensToReceive = weiPerToken && ethValue > 0n ? ethValue / weiPerToken : 0n;
 
-  const isSoldOut = tokensSold && Number(tokensSold) >= totalSaleAmount;
+  const tokensToReceive = WEI_PER_TOKEN && ethValue > 0n ? ethValue / WEI_PER_TOKEN : 0n;
+
+  const isSoldOut = tokensSold && Number(tokensSold) >= TOTAL_SALE_AMOUNT;
 
   const {
     data: simBuy,
@@ -108,26 +109,26 @@ export default function PublicSaleTab() {
   });
 
   /* retry sim once per second while round open but sim reverts w/ claim-not-open */
-      const lastTryRef = useRef(0);
-      useEffect(() => {
-        if (!hasContract) return;
-    
-        const claimNotOpen =
-          simStatus === 'error' &&
-          /Sale not open/i.test(simError?.shortMessage || '');
-    
-        const needRetry =
-          isOpen && isConnected && !alreadyPurchased && claimNotOpen;
-    
-        const now = Date.now();
-        if (needRetry && now - lastTryRef.current > 500) {
-          lastTryRef.current = now;
-          refetchSim();
-        }
-      }, [
-        hasContract, isOpen, isConnected, 
-        alreadyPurchased, simStatus, simError, refetchSim,
-      ]);
+  const lastTryRef = useRef(0);
+  useEffect(() => {
+    if (!hasContract) return;
+
+    const claimNotOpen =
+      simStatus === 'error' &&
+      /Sale not open/i.test(simError?.shortMessage || '');
+
+    const needRetry =
+      isOpen && isConnected && !alreadyPurchased && claimNotOpen;
+
+    const now = Date.now();
+    if (needRetry && now - lastTryRef.current > 500) {
+      lastTryRef.current = now;
+      refetchSim();
+    }
+  }, [
+    hasContract, isOpen, isConnected,
+    alreadyPurchased, simStatus, simError, refetchSim,
+  ]);
 
   const { writeContract, data: txHash } = useWriteContract();
   const { isSuccess: mined } = useWaitForTransactionReceipt({ hash: txHash });
@@ -139,19 +140,19 @@ export default function PublicSaleTab() {
     isOpen &&
     !alreadyPurchased &&
     ethValue > 0n &&
-    ethValue <= (parseEther(maxAllocation)) &&
+    ethValue <= (parseEther(MAX_ALLOCATION)) &&
     simStatus === 'success' &&
     !!simBuy?.request &&
     !buyPending &&
     !isSoldOut;
-  
+
   const buyLabel =
     buyPending ? 'Pending…' :
       isSoldOut ? 'Sold Out' :
-      !isConnected ? 'Connect Wallet' :
-        alreadyPurchased ? 'Already Purchased' :
-          beforeOpen ? 'Starts Soon' :
-            !ethAmount ? 'Enter ETH Amount' :
+        !isConnected ? 'Connect Wallet' :
+          alreadyPurchased ? 'Already Purchased' :
+            beforeOpen ? 'Starts Soon' :
+              !ethAmount ? 'Enter ETH Amount' :
                 'Buy MEME';
 
   const handleBuy = () => {
@@ -168,13 +169,15 @@ export default function PublicSaleTab() {
   return (
     <div style={{ minWidth: 330 }}>
       <Fieldset legend="Sale Status" width="350px" className="flex flex-col mb-3">
-        <Checkbox readOnly checked={isOpen}>
+        <Checkbox readOnly checked={isOpen && !isSoldOut}>
           {hasContract ? (
-            isOpen
-              ? 'Public Sale Open'
-              : beforeOpen
-                ? `Public Sale Opens in ${timeLeft}`
-                : 'Public Sale Closed'
+            isSoldOut
+              ? 'Round Sold Out'
+              : isOpen
+                ? 'Public Sale Open'
+                : beforeOpen
+                  ? `Public Sale Opens in ${timeLeft}`
+                  : 'Public Sale Closed'
           ) : (
             beforeOpen
               ? `Round Opens in ${timeLeft}`
@@ -182,12 +185,12 @@ export default function PublicSaleTab() {
           )}
         </Checkbox>
 
-        <Checkbox readOnly>
-          Max Allocation: {maxAllocation} ETH per wallet
+        <Checkbox readOnly checked>
+          Max Allocation: {MAX_ALLOCATION} ETH per wallet
         </Checkbox>
 
         <Checkbox readOnly checked={!!tokensSold && hasContract}>
-          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/"} {Number(totalSaleAmount).toLocaleString('en-US')} {TOKEN_SYMBOL}
+          Tokens Sold: {tokensSold ? Number(tokensSold).toLocaleString('en-US') : '0'} {"/"} {Number(TOTAL_SALE_AMOUNT).toLocaleString('en-US')} {TOKEN_SYMBOL}
         </Checkbox>
 
         <Checkbox readOnly checked>
@@ -197,40 +200,40 @@ export default function PublicSaleTab() {
         </Checkbox>
       </Fieldset>
 
-        <div className="flex flex-col items-center justify-center mt-2">
-          <div className="flex items-center justify-center mb-2 mt-0">
-            <Input
-              placeholder="0.1"
-              value={ethAmount}
-              onChange={e => {
-                const value = e.target.value;
-                if (value === '' || (parseFloat(value) <= parseFloat(maxAllocation) && parseFloat(value) >= 0)) {
-                  setEthAmount(value);
-                }
-              }}
-              className="w-[45px] mr-2"
-              type="number"
-              step="0.01"
-              max={maxAllocation}
-            />
-            <span className="text-sm mr-1 mt-0.5">ETH = </span>
-            <span className="text-sm mt-0.5 text-blue-900">
-              {ethAmount && tokensToReceive > 0n 
-                ? `${Number(tokensToReceive).toLocaleString('en-US')} ${TOKEN_SYMBOL}`
-                : `0 ${TOKEN_SYMBOL}`
+      <div className="flex flex-col items-center justify-center mt-2">
+        <div className="flex items-center justify-center mb-2 mt-0">
+          <Input
+            placeholder="0.1"
+            value={ethAmount}
+            onChange={e => {
+              const value = e.target.value;
+              if (value === '' || (parseFloat(value) <= parseFloat(MAX_ALLOCATION) && parseFloat(value) >= 0)) {
+                setEthAmount(value);
               }
-            </span>
-          </div>
-
-          <Button
-            disabled={!canBuy}
-            onClick={handleBuy}
-            className="w-80"
-            style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
-          >
-            {buyLabel}
-          </Button>
+            }}
+            className="w-[45px] mr-2"
+            type="number"
+            step="0.01"
+            max={MAX_ALLOCATION}
+          />
+          <span className="text-sm mr-1 mt-0.5">ETH = </span>
+          <span className="text-sm mt-0.5 text-blue-900">
+            {ethAmount && tokensToReceive > 0n
+              ? `${Number(tokensToReceive).toLocaleString('en-US')} ${TOKEN_SYMBOL}`
+              : `0 ${TOKEN_SYMBOL}`
+            }
+          </span>
         </div>
+
+        <Button
+          disabled={!canBuy}
+          onClick={handleBuy}
+          className="w-80"
+          style={{ cursor: `url(${Cursor.Pointer}), pointer` }}
+        >
+          {buyLabel}
+        </Button>
+      </div>
     </div>
   );
 }
