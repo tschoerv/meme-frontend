@@ -16,22 +16,16 @@ export default function MemeDAO() {
             twitter: "https://x.com/ethSpiderwars",
         },
         {
-            name: "Diogo",
-            role: "Signer",
-            img: "/pfp/diogo.webp",
-            twitter: "https://x.com/DiogoAndrea1",
-        },
-        {
-            name: "Zacks.eth",
-            role: "Meme Manager",
-            img: "/pfp/zacks.webp",
-            twitter: "https://x.com/0xzxch",
-        },
-        {
             name: "MJdata",
-            role: "Advisor",
+            role: "Signer",
             img: "/pfp/mjdata.webp",
             twitter: "https://x.com/ChampagneMan",
+        },
+        {
+            name: "Lustful.eth",
+            role: "Meme Manager",
+            img: "/pfp/lustful.webp",
+            twitter: "https://x.com/Lustful100",
         }
     ];
 
@@ -40,10 +34,9 @@ export default function MemeDAO() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-6">The MemeDAO</h2>
 
             <p className="mb-4">
-                <strong>MemeDAO</strong> stewards <strong>15 %</strong> of the fixed
+                <strong>MemeDAO</strong> is the collective engine behind the <strong>MEME</strong> ecosystem. It stewards <strong>15 %</strong> of the fixed
                 supply — fuel for marketing, partnerships, and community
-                growth. The DAO also oversees the <strong>20 % airdrop</strong>,
-                ensuring tokens reach genuine meme believers.
+                growth.
             </p>
 
             <h3 className="text-xl font-semibold mt-4 mb-2">How Governance Works</h3>
