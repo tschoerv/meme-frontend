@@ -71,7 +71,7 @@ export default function MemeLore() {
         Add in the OG’s 257 tokens and the supply crystallised at the meme-perfect <strong>690 420 MEME</strong>.
       </p>
 
-      <p className="mb-4">
+      <p className="mb-8">
         To make Meme tradeable on modern infrastructure and fill in the missing ticker symbol, a wrapper contract has been deployed at a meme-grade vanity address: &nbsp;
         <a
           href="https://etherscan.io/address/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420"
