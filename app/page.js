@@ -212,14 +212,23 @@ function MemeHomepage() {
             <div className="flex flex-col items-center min-w-[400px] min-h-[380px]">
               <p className="text-sm text-center mb-6">MEME Tokenomics Overview</p>
               <Image src="/tokenomics_cropped.svg" alt="tokenomics" width={380} height={300} />
-              <p className='mt-4 mb-1 text-xs'>• 100% of the funds raised in the Presale will go into the LP.</p>
-              <p className='mt-0 text-xs'>• tschoerv has <a
+              <div className='text-left'>
+              <p className='mt-4 mb-1 text-xs'>• 100% of the funds raised in the presale (6eth) went into the LP.</p>
+              <p className='mt-0 mb-1 text-xs'>• Liquidity position <a
+                href={`https://etherscan.io/tx/0xd6f7845cee57a068f783096d642c611275369427521ec8acfc2caa9d3693a864`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>locked</span>
+              </a> until Aug, 2028.</p>
+              <p className='mt-0 text-xs'>• tschoerv <a
                 href={`https://etherscan.io/address/0x20aeDA288BA0B2b2A570590Ae693d3474710Bc46`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <span>locked</span>
               </a> 4.2% of the supply until Aug, 2028.</p>
+              </div>
             </div>
           </Modal.Content>
         </Modal>

@@ -81,15 +81,6 @@ export default function MemeLore() {
           0x6942…69420
         </a>
       </p>
-
-      <h3 className="text-xl sm:text-2xl font-semibold mb-2">What’s next?</h3>
-      <ul className="list-disc list-inside space-y-1 mb-6">
-        <li>Airdrop Season</li>
-        <li>Presale to fund the LP</li>
-        <li>Liquidity Pool Launch</li>
-        <li>Community proposals, campaigns & fun</li>
-        <li>Stay tuned for more!</li>
-      </ul>
     </section>
   );
 }
