@@ -28,7 +28,7 @@ export default function Socials() {
     return (
         <div>
             <div className="flex gap-1 mt-13">
-                {renderIcon('telegram', 'Telegram', '/telegram.webp', 'https://t.me/memecoin2016')}
+                {renderIcon('discord', 'Discord', '/discord.webp', 'https://discord.gg/v2uMwstg8q')}
                 {renderIcon('x', 'X', '/x.webp', 'https://x.com/Memecoin2016')}
                 {renderIcon('dexscreener', 'Dexscreener', '/dexscreener.webp', 'https://dexscreener.com/ethereum/0x69420bb3b07cd7cDa30d589E0f6563cEd3669420')}
                 {renderIcon('github', 'GitHub', '/github.webp', 'https://github.com/tschoerv/meme-frontend')}

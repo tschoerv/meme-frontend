@@ -6,7 +6,7 @@ const DesktopContext = createContext();
 export function DesktopProvider({ children }) {
   const [desktopItems, setDesktopItems] = useState({
     logo: true,
-    telegram: true,
+    discord: true,
     x: true,
     dexscreener: true,
     github: true,

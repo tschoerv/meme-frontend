@@ -42,7 +42,7 @@ export default function MemeDAO() {
             <h3 className="text-xl font-semibold mt-4 mb-2">How Governance Works</h3>
             <ul className="list-disc list-inside space-y-0 mb-6">
                 <li>
-                    <strong>Open proposals:</strong> Anyone can suggest a marketing idea, campaign, or meme-related initiative directly in the community Telegram.
+                    <strong>Open proposals:</strong> Anyone can suggest a marketing idea, campaign, or meme-related initiative directly in the community Discord.
                 </li>
                 <li>
                     <strong>Community discussion:</strong> Ideas are openly debated, refined, and gauged for interest and meme potential.
@@ -57,7 +57,7 @@ export default function MemeDAO() {
 
             <h3 className="text-xl font-semibold mt-6 mb-2">Got a Meme-Worthy Idea?</h3>
             <p>
-                Bring your boldest meme ideas to our Telegram — MemeDAO funds the fun.
+                Bring your boldest meme ideas to our Discord — MemeDAO funds the fun.
             </p>
 
             <h3 className="text-xl font-semibold mb-2">Core Roles</h3>
