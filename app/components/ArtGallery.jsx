@@ -1,8 +1,9 @@
 'use client';
 
-import { Frame } from '@react95/core';
+import { Frame, Tabs, Tab, Cursor, Tooltip } from '@react95/core';
 import { Winhlp324000 } from '@react95/icons';
 import Image from 'next/image';
+import { useState } from 'react';
 
 import { ARTWORK_LIST } from '../config/artworks';
 
@@ -42,38 +43,43 @@ function ArtworkPreview({ artwork }) {
 }
 
 export default function ArtGallery() {
+  const [season, setSeason] = useState(0);
   return (
-    <div className="flex min-w-[420px] flex-col gap-4">
-      <p className="text-sm text-center">Season 1 Gallery</p>
-      <div className="grid max-h-[60vh] grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 overflow-y-auto pr-1">
-        {ARTWORK_LIST.map((artwork) => {
-          const hasMedia = Boolean(artwork.src);
+    <div className='mt-1'>
+      <Tabs value={season} onChange={setSeason} className="mt-3">
+        <Tab title="Season 1" className="mb-2">
 
-          return (
-            <Frame key={artwork.id} boxShadow="$in" className="flex flex-col gap-2 p-2">
-              <ArtworkPreview artwork={artwork} />
-              <div className="flex flex-col gap-1 text-xs">
-                {hasMedia && (
-                  <span className="font-semibold leading-tight">
-                    {artwork.title || `Card ${artwork.id}`}
-                  </span>
-                )}
-                <span className="leading-tight text-gray-700">{artwork.artist}</span>
-                {hasMedia && artwork.twitter && (
-                  <a
-                    href={artwork.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#0000ee] hover:underline"
-                  >
-                    View artist on X
-                  </a>
-                )}
-              </div>
-            </Frame>
-          );
-        })}
-      </div>
+          <div className="flex min-w-[420px] flex-col gap-4">
+            <div className="grid max-h-[60vh] grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 overflow-y-auto pr-1">
+              {ARTWORK_LIST.map((artwork) => {
+                const hasMedia = Boolean(artwork.src);
+
+                return (
+                  <Frame key={artwork.id} boxShadow="$in" className="flex flex-col gap-2 p-2">
+                    <ArtworkPreview artwork={artwork} />
+                    <div className="flex flex-col gap-1 text-xs">
+                      {hasMedia && (
+                        <span className="font-semibold leading-tight">
+                          {artwork.title}
+                        </span>
+                      )}
+                        <a
+                          href={artwork.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#0000ee] hover:underline leading-tight"
+                        >
+                          {artwork.artist}
+                        </a>
+                    </div>
+                  </Frame>
+                );
+              })}
+            </div>
+          </div>
+        </Tab>
+        <Tab title={"Season 2"} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }} disabled />
+      </Tabs>
     </div>
   );
 }
