@@ -1,0 +1,491 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Button, Fieldset, Checkbox, Tooltip, Tabs, Tab, Cursor, Frame
+} from '@react95/core';
+import {
+  useAccount,
+  useReadContract,
+  useSimulateContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from 'wagmi';
+import ConnectButton95 from './ConnectButton95';
+import Image from "next/image";
+import { VENDING_ABI } from '../abi/vendingMachineAbi.js';
+import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
+import { ARTWORKS, PRICE_SEASON_1 } from '../config/artworks';
+
+/* ───────────────── Config ───────────────── */
+const VENDING_ADDR = process.env.NEXT_PUBLIC_VENDING_ADDRESS;
+
+/* ───────────────── Utils ───────────────── */
+const prettyWei = (w) => {
+  try {
+    const s = w.toString().padStart(19, '0');
+    const whole = s.slice(0, -18) || '0';
+    const frac = s.slice(-18).replace(/0+$/, '').slice(0, 6);
+    return frac ? `${whole}.${frac}` : whole;
+  } catch { return '0'; }
+};
+const fmtTime = (seconds) => {
+  const s = Math.max(0, seconds | 0);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  return `${d}d ${h}h ${m}m ${r}s`;
+};
+
+/* ───────────────── Tab body component ───────────────── */
+function CardPanel({ id, isActive, isPaused }) {
+  const { address: caller, isConnected } = useAccount();
+  const [amountStr, setAmountStr] = useState('1');
+  const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
+
+  const [pendingMint, setPendingMint] = useState(null); // snapshot before tx
+  const [mintSuccess, setMintSuccess] = useState(null); // store confirmed tx
+
+
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const hasContract = useMemo(
+    () => VENDING_ADDR && /^0x[0-9a-fA-F]{40}$/.test(VENDING_ADDR) && !/^0x0{40}$/i.test(VENDING_ADDR),
+    []
+  );
+
+  // Artwork state
+  const art = ARTWORKS[id] || null;
+  const isVideo = !!art?.src && /\.mp4(\?.*)?$/i.test(art.src);
+  const videoRef = useRef(null);
+  const [muted, setMuted] = useState(true);
+
+  // Reset mute when switching cards / sources
+  useEffect(() => {
+    setMuted(true);
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      // attempt to play (autoplay allowed because muted)
+      videoRef.current.play().catch(() => { });
+    }
+  }, [id, art?.src, isActive]);
+
+  const toggleMute = () => {
+    setMuted((m) => {
+      const next = !m;
+      if (videoRef.current) {
+        videoRef.current.muted = next;
+        if (!next) {
+          // user-initiated play with sound
+          videoRef.current.play().catch(() => { });
+        }
+      }
+      return next;
+    });
+  };
+
+
+  // Read sale config for this card
+  // ── Read sale config for this card ──
+  const { data: saleTuple } = useReadContract({
+    address: VENDING_ADDR,
+    abi: VENDING_ABI,
+    functionName: 'sale',
+    args: [id],
+    enabled: hasContract && isActive,
+  });
+
+  // Debug: see exactly what wagmi/viem returns
+  useEffect(() => {
+    if (isActive) {
+      // You’ll see either an array [startTime,maxPerTx,discountBps,priceWei,artist]
+      // or an object { startTime, maxPerTx, discountBps, priceWei, artist }
+      console.log(`sale(${id}) →`, saleTuple);
+    }
+  }, [saleTuple, isActive, id]);
+
+  // Normalize both shapes (named OR indexed)
+  const stRaw = saleTuple && (saleTuple.startTime ?? saleTuple[0]);
+  const maxRaw = saleTuple && (saleTuple.maxPerTx ?? saleTuple[1]);
+  const discRaw = saleTuple && (saleTuple.discountBps ?? saleTuple[2]);
+  const priceRaw = saleTuple && (saleTuple.priceWei ?? saleTuple[3]);
+  const artistRaw = saleTuple && (saleTuple.artist ?? saleTuple[4]);
+
+  const startTime = Number(stRaw ?? 0);
+  const maxPerTx = Number(maxRaw ?? 0);
+  const discountBps = Number(discRaw ?? 0);
+  const priceWeiRaw = BigInt(priceRaw ?? 0n);
+  const artist = artistRaw ?? '0x0000000000000000000000000000000000000000';
+
+  const priceSet = priceWeiRaw > 0n;
+
+  const saleOpen = startTime !== 0 && nowTs >= startTime;
+  const saleBefore = startTime !== 0 && nowTs < startTime;
+  const saleClosed = startTime === 0;
+  const opensIn = saleBefore ? fmtTime(startTime - nowTs) : '';
+
+  // Price for caller (handles discount)
+  const { data: unitPrice } = useReadContract({
+    address: VENDING_ADDR,
+    abi: VENDING_ABI,
+    functionName: 'unitPriceFor',
+    args: [caller ?? '0x0000000000000000000000000000000000000000', id],
+    enabled: hasContract && isActive && priceSet,
+  });
+
+  const price = unitPrice ? BigInt(unitPrice) : 0n;
+
+  const discounted = price > 0n && price < priceWeiRaw;
+
+  const discountPct = (() => {
+    // discountBps is 0..10000
+    const pct = discountBps / 100; // e.g. 1000 bps -> 10
+    // show no decimals for whole numbers, otherwise 2 decimals
+    return (discountBps % 100 === 0) ? String(pct) : pct.toFixed(2);
+  })();
+
+  // Collection address + inventory
+  const { data: collectionAddr } = useReadContract({
+    address: VENDING_ADDR, abi: VENDING_ABI, functionName: 'collection',
+    enabled: hasContract && isActive,
+  });
+
+  const { data: inv } = useReadContract({
+    address: collectionAddr, abi: ERC1155_ABI, functionName: 'balanceOf',
+    args: [VENDING_ADDR, id],
+    enabled: hasContract && isActive && !!collectionAddr,
+  });
+  const inventory = Number(inv ?? 0);
+
+  // Amount & totals
+  const amountNum = Math.max(0, Math.floor(Number(amountStr || '0')));
+  const amountOk =
+    amountNum > 0 &&
+    (maxPerTx === 0 || amountNum <= maxPerTx) &&
+    amountNum <= Math.max(1, inventory);
+
+  const totalValue = amountOk ? price * BigInt(amountNum) : 0n;
+
+  // Simulate & buy
+const {
+  data: sim,
+  status: simStatus,
+  error: simError,
+  refetch: refetchSim,
+} = useSimulateContract({
+  address: VENDING_ADDR,
+  abi: VENDING_ABI,
+  functionName: 'buyTo',
+  args: [id, BigInt(Math.max(1, amountNum || 0)), caller ?? '0x0000000000000000000000000000000000000000'],
+  value: totalValue,
+  account: caller,
+  enabled: hasContract && isActive && isConnected && amountOk && saleOpen && !isPaused,
+});
+
+const lastTryRef = useRef(0);
+useEffect(() => {
+  // Wagmi/viem shortMessage for our vending machine when not yet open
+  const msg = simError?.shortMessage || simError?.message || '';
+  const looksClosed = simStatus === 'error' && /sale closed/i.test(msg);
+
+  const shouldRetry =
+    hasContract &&
+    isActive &&
+    isConnected &&
+    amountOk &&
+    saleOpen &&       // UI clock says "open"
+    !isPaused &&
+    looksClosed;      // chain still reports "sale closed"
+
+  const now = Date.now();
+  if (shouldRetry && now - lastTryRef.current > 500) {
+    lastTryRef.current = now;
+    refetchSim();
+  }
+}, [
+  hasContract, isActive, isConnected, amountOk, saleOpen, isPaused, simStatus, simError, refetchSim,
+]);
+
+
+  const { writeContract, data: txHash } = useWriteContract();
+  const { isSuccess: mined } = useWaitForTransactionReceipt({ hash: txHash });
+  const pending = !!txHash && !mined;
+
+  const canBuy =
+    hasContract && isActive && isConnected && saleOpen && !isPaused &&
+    amountOk && price > 0n && totalValue > 0n &&
+    simStatus === 'success' && !!sim?.request && !pending && inventory > 0;
+
+  const buyLabel =
+    pending ? 'Pending…' :
+      !isConnected ? 'Connect Wallet' :
+        isPaused ? 'Paused' :
+          saleBefore ? 'Starts Soon' :
+            saleClosed ? 'Closed' :
+              inventory === 0 ? 'Sold Out' :
+                !amountOk ? 'Enter Valid Amount' :
+                  'Buy';
+
+  const handleBuy = () => {
+    if (sim?.request) {
+      setPendingMint({ id, amount: amountNum, totalWei: totalValue });
+      writeContract(sim.request);
+    }
+  };
+
+  // When mined, show success
+  useEffect(() => {
+    if (mined && txHash && pendingMint && pendingMint.id === id) {
+      setMintSuccess({
+        ...pendingMint,
+        hash: txHash,
+      });
+      setPendingMint(null);
+    }
+  }, [mined, txHash, pendingMint, id]);
+
+  return (
+    <div style={{ minWidth: 360 }}>
+      <Fieldset legend={`Mint Status`} width="360px" className="flex flex-col mb-3">
+        <Checkbox readOnly checked={saleOpen && !isPaused}>
+          {saleClosed ? 'Sale Closed' : saleBefore ? `Opens in ${opensIn}` : 'Sale Open'}
+        </Checkbox>
+
+        <Checkbox readOnly checked>
+          {`Available: ${inventory}/100`}
+        </Checkbox>
+
+        <Checkbox readOnly checked={discounted}>
+          <Tooltip text="Hold 100 MEME to receive a 10% discount" delay={300}>
+            <u>{`MEME Holders Discount: ${discountPct}%`}</u>
+          </Tooltip>
+        </Checkbox>
+
+        <Checkbox readOnly checked>
+          {`Purchase Limit per Tx: ${maxPerTx === 0 ? 'No Limit' : maxPerTx}`}
+        </Checkbox>
+      </Fieldset>
+
+      {/* Artwork preview */}
+      {art?.src && (
+        <div className="flex flex-col items-center mb-3" style={{ minWidth: 360 }}>
+          <div
+            className="overflow-hidden"
+            style={{
+              position: 'relative',
+              width: 280,
+              height: 280,
+              border: '1px solid var(--material)',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
+              background: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isVideo ? (
+              <video
+                key={art.src}
+                ref={videoRef}
+                src={art.src}
+                width={280}
+                height={280}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
+                muted={muted}
+                loop
+                autoPlay
+                playsInline
+                controls={false}
+              />
+            ) : (
+              <img
+                src={art.src}
+                alt={`${art.title} by ${art.artist}`}
+                width={280}
+                height={280}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
+              />
+            )}
+
+            {/* Unmute/Mute button for videos */}
+            {isVideo && (
+              <div
+                role="button"
+                aria-label={muted ? 'Unmute' : 'Mute'}
+                title={muted ? 'Unmute' : 'Mute'}
+                tabIndex={0}
+                onClick={toggleMute}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleMute();
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  right: 6,
+                  bottom: 6,
+                  width: 25,
+                  height: 25,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Image
+                  src={muted ? '/icons/icons8-mute-50.png' : '/icons/icons8-audio-50.png'}
+                  alt={muted ? 'Muted' : 'Unmuted'}
+                  width={20}
+                  height={20}
+                />
+              </div>
+            )}
+
+
+          </div>
+
+          {/* Caption: Title — Artist (clickable Twitter if provided) */}
+          <div className="mt-2 text-xs text-center" style={{ maxWidth: 320, lineHeight: 1.3 }}>
+            <strong>{art.title}</strong>
+            <span> — </span>
+            {art.twitter ? (
+              <a
+                href={art.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'underline' }}
+                title={`Open ${art.artist} on X (Twitter)`}
+              >
+                {art.artist}
+              </a>
+            ) : (
+              <span>{art.artist}</span>
+            )}
+          </div>
+        </div>
+      )}
+
+
+      <div className="flex items-center justify-center gap-8">
+        {/* Minus button */}
+        <div className="flex flex-row gap-2">
+          <Button
+            size="sm"
+            className='amountButton'
+            disabled={amountNum <= 1}
+            onClick={() => setAmountStr(String(Math.max(1, amountNum - 1)))}
+          >
+            −
+          </Button>
+
+          <Frame w="68px" h="40px" padding="$4" boxShadow="$in" className="text-center flex flex-col">
+            <span className="text-sm">{amountNum}</span>
+            <span className='text-[11px] text-gray-700'>{amountOk && price > 0n ? `${prettyWei(totalValue)} ETH` : `${PRICE_SEASON_1} ETH`}</span>
+          </Frame>
+
+          {/* Plus button */}
+          <Button
+            size="sm"
+            className='amountButton'
+            disabled={
+              (maxPerTx !== 0 && amountNum >= maxPerTx) ||
+              amountNum >= inventory
+            }
+            onClick={() => {
+              const maxAllowed =
+                maxPerTx === 0
+                  ? inventory
+                  : Math.min(maxPerTx, inventory);
+              setAmountStr(String(Math.min(maxAllowed, amountNum + 1)));
+            }}
+          >
+            +
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center mt-3">
+        <Button disabled={!canBuy} onClick={handleBuy} className="w-[280px]">
+          {buyLabel}
+        </Button>
+      </div>
+
+      {mintSuccess && mintSuccess.id === id && (
+        <div className="mt-2 text-center text-green-700 text-xs">
+          <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ───────────────── Main component ───────────────── */
+export default function ArtDrop() {
+  const { data: isPaused } = useReadContract({
+    address: VENDING_ADDR, abi: VENDING_ABI, functionName: 'paused',
+    enabled: !!VENDING_ADDR,
+  });
+
+  const [season, setSeason] = useState(0);      // 0 = Season 1
+  const [tab, setTab] = useState(0);            // index in the Card tabs (0..6)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 360 }}>
+      <ConnectButton95 />
+
+      <div className="mt-2">
+        {/* Seasons */}
+        <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
+          <Tab title="Season 1" className="mb-2">
+            {/* Cards (manual, Card 1 enabled; others disabled with tooltip) */}
+            <Tabs value={tab} onChange={setTab} className="mb-2">
+              <Tab title="Card 1">
+                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} />
+              </Tab>
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 3</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
+
+            </Tabs>
+            <div className="flex flex-row justify-center mt-2 mb-0">
+              <span className="mr-1">Contract:</span>
+              <a
+                href={`https://etherscan.io/address/${VENDING_ADDR}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>[{VENDING_ADDR?.slice(0, 6)}…{VENDING_ADDR?.slice(-4)}]</span>
+              </a>
+            </div>
+          </Tab>
+
+          {/* Season 2 placeholder */}
+
+          <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Season 2</Tooltip>} disabled />
+        </Tabs>
+      </div>
+    </div>
+  );
+}

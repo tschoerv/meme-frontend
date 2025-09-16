@@ -74,3 +74,13 @@ body {
   bottom: unset !important; /* release the default pin */
 }
 
+.custom-tabs + div {
+  padding-bottom: 6px !important;
+  padding-top: 8px !important; /* in case padding is applied */
+}
+
+.amountButton{
+  padding-left: 10px !important;
+  padding-right: 8px !important;
+}
+
