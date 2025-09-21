@@ -5,7 +5,7 @@ import { Winhlp324000 } from '@react95/icons';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-import { ARTWORK_LIST } from '../config/artworks';
+import { ARTWORK_LIST, EDITION_SEASON_1 } from '../config/artworks';
 
 function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) {
   const isVideo = artwork.src ? /\.mp4(\?.*)?$/i.test(artwork.src) : false;
@@ -370,7 +370,7 @@ export default function ArtGallery() {
 
                       {hasCard && (
                         <span className="text-xs leading-tight text-gray-700 italic mt-0.5">
-                          Card {artwork.card}
+                          Card {artwork.card}, {EDITION_SEASON_1}
                         </span>
                       )}
 
