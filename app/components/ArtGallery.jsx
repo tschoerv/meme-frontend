@@ -4,8 +4,9 @@ import { Frame, Tabs, Tab, Cursor } from '@react95/core';
 import { Winhlp324000 } from '@react95/icons';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-
 import { ARTWORK_LIST, EDITION_SEASON_1 } from '../config/artworks';
+
+const MEME_ART_ADDR = process.env.NEXT_PUBLIC_MEME_ART_ADDRESS;
 
 function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) {
   const isVideo = artwork.src ? /\.mp4(\?.*)?$/i.test(artwork.src) : false;
@@ -348,7 +349,6 @@ export default function ArtGallery() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[73.6vh] overflow-y-auto pr-1">
               {sortedArtworks.map((artwork) => {
                 const hasMedia = Boolean(artwork.src);
-                const hasOs = Boolean(artwork.os);
                 const hasPfp = Boolean(artwork.pfp);
                 const hasCard = Boolean(artwork.card);
                 const isActive = activeVideoId === artwork.id;
@@ -387,7 +387,7 @@ export default function ArtGallery() {
                             <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-[#dcdcdc] border border-black/10" />
                           )}
                           <a
-                            href={artwork.twitter}
+                            href={`https://x.com/${artwork.twitter}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-[#0000ee] hover:underline leading-tight truncate"
@@ -398,9 +398,9 @@ export default function ArtGallery() {
                           </a>
                         </div>
 
-                        {hasOs && (
+                        {hasMedia && (
                           <a
-                            href={artwork.os}
+                            href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.card}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="shrink-0"
