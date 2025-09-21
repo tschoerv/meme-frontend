@@ -37,7 +37,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
       ([entry]) => {
         if (!entry.isIntersecting && !el.paused) el.pause();
         // only auto-resume when muted (autoplay-safe) — gif-like are always muted
-        if (entry.isIntersecting && el.paused && el.muted !== false) {
+        if (entry.isIntersecting && el.paused) {
           el.play().catch(() => { });
         }
       },
