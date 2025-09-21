@@ -12,8 +12,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
   const isGif = !!artwork.gif; // mp4 behaving like a gif (no mute control)
   const videoRef = useRef(null);
 
-  const poster = artwork.poster || artwork.thumb || '/icons/placeholder.webp';
-  const thumb = artwork.thumb || artwork.src || '/icons/placeholder.webp';
+  const thumb = artwork.thumb || artwork.src;
 
   // keep inline video mute state in sync with global active (but not for gif-like)
   useEffect(() => {
@@ -55,7 +54,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
           src: artwork.src,
           title: artwork.title,
           artist: artwork.artist,
-          poster,
+          poster: artwork.poster,
           gif: isGif, // pass-through for lightbox behavior
         }
         : { type: 'image', src: artwork.src, title: artwork.title, artist: artwork.artist }
@@ -98,7 +97,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
             key={artwork.src}
             src={artwork.src}
             ref={videoRef}
-            poster={poster}
+            poster={artwork.poster}
             preload="metadata"
             playsInline
             autoPlay
@@ -229,7 +228,7 @@ function Lightbox({ item, onClose }) {
                 autoPlay
                 loop
                 controls={false}
-                muted={muted} // GIF-like => true
+                muted={muted}
                 className="absolute inset-0 w-full h-full object-contain"
               />
               {!item.gif && needsTap && (
