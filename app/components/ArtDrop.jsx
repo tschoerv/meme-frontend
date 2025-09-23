@@ -15,7 +15,7 @@ import ConnectButton95 from './ConnectButton95';
 import Image from "next/image";
 import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
-import { ARTWORKS, PRICE_SEASON_1 } from '../config/artworks';
+import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1 } from '../config/artworks';
 
 /* ───────────────── Config ───────────────── */
 const ART_DROP_ADDR = process.env.NEXT_PUBLIC_ART_DROP_ADDRESS;
@@ -98,14 +98,12 @@ function CardPanel({ id, isActive, isPaused }) {
 
 
   // Normalize both shapes (named OR indexed)
-  const stRaw = saleTuple && (saleTuple.startTime ?? saleTuple[0]);
-  const maxRaw = saleTuple && (saleTuple.maxPerTx ?? saleTuple[1]);
-  const discRaw = saleTuple && (saleTuple.discountBps ?? saleTuple[2]);
-  const priceRaw = saleTuple && (saleTuple.priceWei ?? saleTuple[3]);
+  const priceRaw = saleTuple && (saleTuple.priceWei  ?? saleTuple[0]);
+  const stRaw    = saleTuple && (saleTuple.startTime ?? saleTuple[1]);
+  const maxRaw   = saleTuple && (saleTuple.maxPerTx  ?? saleTuple[2]);
 
   const startTime = Number(stRaw ?? 0);
   const maxPerTx = Number(maxRaw ?? 0);
-  const discountBps = Number(discRaw ?? 0);
   const priceWeiRaw = BigInt(priceRaw ?? 0n);
 
   const priceSet = priceWeiRaw > 0n;
@@ -128,23 +126,11 @@ function CardPanel({ id, isActive, isPaused }) {
 
   const discounted = price > 0n && price < priceWeiRaw;
 
-  const discountPct = (() => {
-    // discountBps is 0..10000
-    const pct = discountBps / 100; // e.g. 1000 bps -> 10
-    // show no decimals for whole numbers, otherwise 2 decimals
-    return (discountBps % 100 === 0) ? String(pct) : pct.toFixed(2);
-  })();
-
-  // Collection address + inventory
-  const { data: collectionAddr } = useReadContract({
-    address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'collection',
-    enabled: hasContract && isActive,
-  });
-
+  // Read inventory
   const { data: inv } = useReadContract({
-    address: collectionAddr, abi: ERC1155_ABI, functionName: 'balanceOf',
+    address: MEME_ART_ADDR, abi: ERC1155_ABI, functionName: 'balanceOf',
     args: [ART_DROP_ADDR, id],
-    enabled: hasContract && isActive && !!collectionAddr,
+    enabled: hasContract && isActive,
   });
   const inventory = Number(inv ?? 0);
 
@@ -175,7 +161,7 @@ function CardPanel({ id, isActive, isPaused }) {
 
   const lastTryRef = useRef(0);
   useEffect(() => {
-    // Wagmi/viem shortMessage for our vending machine when not yet open
+    //shortMessage for buyTo when not yet open
     const msg = simError?.shortMessage || simError?.message || '';
     const looksClosed = simStatus === 'error' && /sale closed/i.test(msg);
 
@@ -238,7 +224,7 @@ function CardPanel({ id, isActive, isPaused }) {
   const handleShareOnX = () => {
     if (!art?.src) return;
 
-    const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${art.card}`
+    const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${id}`
 
     const text = `Just minted “${art.title}” by @${art.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨\n@Memecoin2016`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(osUrl)}`;
@@ -259,8 +245,8 @@ function CardPanel({ id, isActive, isPaused }) {
         </Checkbox>
 
         <Checkbox readOnly checked={discounted}>
-          <Tooltip text="Hold 100 MEME to receive a 10% discount" delay={300}>
-            <u>{`MEME Holders Discount: ${discountPct}%`}</u>
+          <Tooltip text={`Hold 100 MEME to receive a ${DISCOUNT_PCT_SEASON_1}% discount`} delay={300}>
+            <u>{`MEME Holders Discount: ${DISCOUNT_PCT_SEASON_1}%`}</u>
           </Tooltip>
         </Checkbox>
 
@@ -345,8 +331,6 @@ function CardPanel({ id, isActive, isPaused }) {
                 />
               </div>
             )}
-
-
           </div>
 
           <div className="mt-2 text-xs text-center" style={{ maxWidth: 320, lineHeight: 1.3 }}>
@@ -416,13 +400,11 @@ function CardPanel({ id, isActive, isPaused }) {
         </Button>
       </div>
 
-      {true && (
-        //mintSuccess && mintSuccess.id === id
+      {mintSuccess && mintSuccess.id === id && (
         <div className="mt-2 text-center text-xs">
           <div className="text-green-700 mb-2">
             <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
           </div>
-         
 
           <Button
             onClick={handleShareOnX}
