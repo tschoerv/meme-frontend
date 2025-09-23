@@ -1,4 +1,4 @@
-export const VENDING_ABI = [
+export const ART_DROP_ABI = [
   { type: 'function', stateMutability: 'view', name: 'paused', inputs: [], outputs: [{ type: 'bool' }] },
   { type: 'function', stateMutability: 'view', name: 'collection', inputs: [], outputs: [{ type: 'address' }] },
   { type: 'function', stateMutability: 'view', name: 'unitPriceFor', inputs: [{ type: 'address' }, { type: 'uint256' }], outputs: [{ type: 'uint256' }] },

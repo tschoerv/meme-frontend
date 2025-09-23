@@ -13,12 +13,12 @@ import {
 } from 'wagmi';
 import ConnectButton95 from './ConnectButton95';
 import Image from "next/image";
-import { VENDING_ABI } from '../abi/vendingMachineAbi.js';
+import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
 import { ARTWORKS, PRICE_SEASON_1 } from '../config/artworks';
 
 /* ───────────────── Config ───────────────── */
-const VENDING_ADDR = process.env.NEXT_PUBLIC_VENDING_ADDRESS;
+const ART_DROP_ADDR = process.env.NEXT_PUBLIC_ART_DROP_ADDRESS;
 const MEME_ART_ADDR = process.env.NEXT_PUBLIC_MEME_ART_ADDRESS;
 
 /* ───────────────── Utils ───────────────── */
@@ -52,7 +52,7 @@ function CardPanel({ id, isActive, isPaused }) {
   }, []);
 
   const hasContract = useMemo(
-    () => VENDING_ADDR && /^0x[0-9a-fA-F]{40}$/.test(VENDING_ADDR) && !/^0x0{40}$/i.test(VENDING_ADDR),
+    () => ART_DROP_ADDR && /^0x[0-9a-fA-F]{40}$/.test(ART_DROP_ADDR) && !/^0x0{40}$/i.test(ART_DROP_ADDR),
     []
   );
 
@@ -89,8 +89,8 @@ function CardPanel({ id, isActive, isPaused }) {
 
   // Read sale config for this card
   const { data: saleTuple } = useReadContract({
-    address: VENDING_ADDR,
-    abi: VENDING_ABI,
+    address: ART_DROP_ADDR,
+    abi: ART_DROP_ABI,
     functionName: 'sale',
     args: [id],
     enabled: hasContract && isActive,
@@ -117,8 +117,8 @@ function CardPanel({ id, isActive, isPaused }) {
 
   // Price for caller (handles discount)
   const { data: unitPrice } = useReadContract({
-    address: VENDING_ADDR,
-    abi: VENDING_ABI,
+    address: ART_DROP_ADDR,
+    abi: ART_DROP_ABI,
     functionName: 'unitPriceFor',
     args: [caller ?? '0x0000000000000000000000000000000000000000', id],
     enabled: hasContract && isActive && priceSet,
@@ -137,13 +137,13 @@ function CardPanel({ id, isActive, isPaused }) {
 
   // Collection address + inventory
   const { data: collectionAddr } = useReadContract({
-    address: VENDING_ADDR, abi: VENDING_ABI, functionName: 'collection',
+    address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'collection',
     enabled: hasContract && isActive,
   });
 
   const { data: inv } = useReadContract({
     address: collectionAddr, abi: ERC1155_ABI, functionName: 'balanceOf',
-    args: [VENDING_ADDR, id],
+    args: [ART_DROP_ADDR, id],
     enabled: hasContract && isActive && !!collectionAddr,
   });
   const inventory = Number(inv ?? 0);
@@ -164,8 +164,8 @@ function CardPanel({ id, isActive, isPaused }) {
     error: simError,
     refetch: refetchSim,
   } = useSimulateContract({
-    address: VENDING_ADDR,
-    abi: VENDING_ABI,
+    address: ART_DROP_ADDR,
+    abi: ART_DROP_ABI,
     functionName: 'buyTo',
     args: [id, BigInt(Math.max(1, amountNum || 0)), caller ?? '0x0000000000000000000000000000000000000000'],
     value: totalValue,
@@ -238,10 +238,9 @@ function CardPanel({ id, isActive, isPaused }) {
   const handleShareOnX = () => {
     if (!art?.src) return;
 
-    //const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${art.card}`
-    const osUrl ="https://opensea.io/item/ethereum/0x73da73ef3a6982109c4d5bdb0db9dd3e3783f313/10"
+    const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${art.card}`
 
-    const text = `Just minted “${art.title}” by @${art.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨`;
+    const text = `Just minted “${art.title}” by @${art.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨\n@Memecoin2016`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(osUrl)}`;
 
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -417,7 +416,8 @@ function CardPanel({ id, isActive, isPaused }) {
         </Button>
       </div>
 
-      {mintSuccess && mintSuccess.id === id && (
+      {true && (
+        //mintSuccess && mintSuccess.id === id
         <div className="mt-2 text-center text-xs">
           <div className="text-green-700 mb-2">
             <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
@@ -443,8 +443,8 @@ function CardPanel({ id, isActive, isPaused }) {
 /* ───────────────── Main component ───────────────── */
 export default function ArtDrop() {
   const { data: isPaused } = useReadContract({
-    address: VENDING_ADDR, abi: VENDING_ABI, functionName: 'paused',
-    enabled: !!VENDING_ADDR,
+    address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'paused',
+    enabled: !!ART_DROP_ADDR,
   });
 
   const [season, setSeason] = useState(0);      // 0 = Season 1
@@ -490,17 +490,16 @@ export default function ArtDrop() {
             <div className="flex flex-row justify-center mt-2 mb-0">
               <span className="mr-1">Contract:</span>
               <a
-                href={`https://etherscan.io/address/${VENDING_ADDR}`}
+                href={`https://etherscan.io/address/${ART_DROP_ADDR}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span>[{VENDING_ADDR?.slice(0, 6)}…{VENDING_ADDR?.slice(-4)}]</span>
+                <span>[{ART_DROP_ADDR?.slice(0, 6)}…{ART_DROP_ADDR?.slice(-4)}]</span>
               </a>
             </div>
           </Tab>
 
           {/* Season 2 placeholder */}
-
           <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Season 2</Tooltip>} disabled />
         </Tabs>
       </div>
