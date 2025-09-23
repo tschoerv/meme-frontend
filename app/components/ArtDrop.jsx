@@ -19,6 +19,7 @@ import { ARTWORKS, PRICE_SEASON_1 } from '../config/artworks';
 
 /* ───────────────── Config ───────────────── */
 const VENDING_ADDR = process.env.NEXT_PUBLIC_VENDING_ADDRESS;
+const MEME_ART_ADDR = process.env.NEXT_PUBLIC_MEME_ART_ADDRESS;
 
 /* ───────────────── Utils ───────────────── */
 const prettyWei = (w) => {
@@ -87,7 +88,6 @@ function CardPanel({ id, isActive, isPaused }) {
 
 
   // Read sale config for this card
-  // ── Read sale config for this card ──
   const { data: saleTuple } = useReadContract({
     address: VENDING_ADDR,
     abi: VENDING_ABI,
@@ -96,27 +96,17 @@ function CardPanel({ id, isActive, isPaused }) {
     enabled: hasContract && isActive,
   });
 
-  // Debug: see exactly what wagmi/viem returns
-  useEffect(() => {
-    if (isActive) {
-      // You’ll see either an array [startTime,maxPerTx,discountBps,priceWei,artist]
-      // or an object { startTime, maxPerTx, discountBps, priceWei, artist }
-      console.log(`sale(${id}) →`, saleTuple);
-    }
-  }, [saleTuple, isActive, id]);
 
   // Normalize both shapes (named OR indexed)
   const stRaw = saleTuple && (saleTuple.startTime ?? saleTuple[0]);
   const maxRaw = saleTuple && (saleTuple.maxPerTx ?? saleTuple[1]);
   const discRaw = saleTuple && (saleTuple.discountBps ?? saleTuple[2]);
   const priceRaw = saleTuple && (saleTuple.priceWei ?? saleTuple[3]);
-  const artistRaw = saleTuple && (saleTuple.artist ?? saleTuple[4]);
 
   const startTime = Number(stRaw ?? 0);
   const maxPerTx = Number(maxRaw ?? 0);
   const discountBps = Number(discRaw ?? 0);
   const priceWeiRaw = BigInt(priceRaw ?? 0n);
-  const artist = artistRaw ?? '0x0000000000000000000000000000000000000000';
 
   const priceSet = priceWeiRaw > 0n;
 
@@ -168,44 +158,44 @@ function CardPanel({ id, isActive, isPaused }) {
   const totalValue = amountOk ? price * BigInt(amountNum) : 0n;
 
   // Simulate & buy
-const {
-  data: sim,
-  status: simStatus,
-  error: simError,
-  refetch: refetchSim,
-} = useSimulateContract({
-  address: VENDING_ADDR,
-  abi: VENDING_ABI,
-  functionName: 'buyTo',
-  args: [id, BigInt(Math.max(1, amountNum || 0)), caller ?? '0x0000000000000000000000000000000000000000'],
-  value: totalValue,
-  account: caller,
-  enabled: hasContract && isActive && isConnected && amountOk && saleOpen && !isPaused,
-});
+  const {
+    data: sim,
+    status: simStatus,
+    error: simError,
+    refetch: refetchSim,
+  } = useSimulateContract({
+    address: VENDING_ADDR,
+    abi: VENDING_ABI,
+    functionName: 'buyTo',
+    args: [id, BigInt(Math.max(1, amountNum || 0)), caller ?? '0x0000000000000000000000000000000000000000'],
+    value: totalValue,
+    account: caller,
+    enabled: hasContract && isActive && isConnected && amountOk && saleOpen && !isPaused,
+  });
 
-const lastTryRef = useRef(0);
-useEffect(() => {
-  // Wagmi/viem shortMessage for our vending machine when not yet open
-  const msg = simError?.shortMessage || simError?.message || '';
-  const looksClosed = simStatus === 'error' && /sale closed/i.test(msg);
+  const lastTryRef = useRef(0);
+  useEffect(() => {
+    // Wagmi/viem shortMessage for our vending machine when not yet open
+    const msg = simError?.shortMessage || simError?.message || '';
+    const looksClosed = simStatus === 'error' && /sale closed/i.test(msg);
 
-  const shouldRetry =
-    hasContract &&
-    isActive &&
-    isConnected &&
-    amountOk &&
-    saleOpen &&       // UI clock says "open"
-    !isPaused &&
-    looksClosed;      // chain still reports "sale closed"
+    const shouldRetry =
+      hasContract &&
+      isActive &&
+      isConnected &&
+      amountOk &&
+      saleOpen &&       // UI clock says "open"
+      !isPaused &&
+      looksClosed;      // chain still reports "sale closed"
 
-  const now = Date.now();
-  if (shouldRetry && now - lastTryRef.current > 500) {
-    lastTryRef.current = now;
-    refetchSim();
-  }
-}, [
-  hasContract, isActive, isConnected, amountOk, saleOpen, isPaused, simStatus, simError, refetchSim,
-]);
+    const now = Date.now();
+    if (shouldRetry && now - lastTryRef.current > 500) {
+      lastTryRef.current = now;
+      refetchSim();
+    }
+  }, [
+    hasContract, isActive, isConnected, amountOk, saleOpen, isPaused, simStatus, simError, refetchSim,
+  ]);
 
 
   const { writeContract, data: txHash } = useWriteContract();
@@ -244,6 +234,19 @@ useEffect(() => {
       setPendingMint(null);
     }
   }, [mined, txHash, pendingMint, id]);
+
+  const handleShareOnX = () => {
+    if (!art?.src) return;
+
+    //const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${art.card}`
+    const osUrl ="https://opensea.io/item/ethereum/0x73da73ef3a6982109c4d5bdb0db9dd3e3783f313/10"
+
+    const text = `Just minted “${art.title}” by @${art.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(osUrl)}`;
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
 
   return (
     <div style={{ minWidth: 360 }}>
@@ -289,6 +292,7 @@ useEffect(() => {
                 key={art.src}
                 ref={videoRef}
                 src={art.src}
+                poster={art.poster}
                 width={280}
                 height={280}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
@@ -300,7 +304,7 @@ useEffect(() => {
               />
             ) : (
               <img
-                src={art.src}
+                src={art.thumb}
                 alt={`${art.title} by ${art.artist}`}
                 width={280}
                 height={280}
@@ -346,13 +350,12 @@ useEffect(() => {
 
           </div>
 
-          {/* Caption: Title — Artist (clickable Twitter if provided) */}
           <div className="mt-2 text-xs text-center" style={{ maxWidth: 320, lineHeight: 1.3 }}>
             <strong>{art.title}</strong>
             <span> — </span>
             {art.twitter ? (
               <a
-                href={art.twitter}
+                href={`https://x.com/${art.twitter}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ textDecoration: 'underline' }}
@@ -376,6 +379,7 @@ useEffect(() => {
             className='amountButton'
             disabled={amountNum <= 1}
             onClick={() => setAmountStr(String(Math.max(1, amountNum - 1)))}
+            style={{ cursor: 'pointer' }}
           >
             −
           </Button>
@@ -400,6 +404,7 @@ useEffect(() => {
                   : Math.min(maxPerTx, inventory);
               setAmountStr(String(Math.min(maxAllowed, amountNum + 1)));
             }}
+            style={{ cursor: 'pointer' }}
           >
             +
           </Button>
@@ -407,14 +412,28 @@ useEffect(() => {
       </div>
 
       <div className="flex items-center justify-center mt-3">
-        <Button disabled={!canBuy} onClick={handleBuy} className="w-[280px]">
+        <Button disabled={!canBuy} onClick={handleBuy} className="w-[280px]" style={{ cursor: 'pointer' }}>
           {buyLabel}
         </Button>
       </div>
 
       {mintSuccess && mintSuccess.id === id && (
-        <div className="mt-2 text-center text-green-700 text-xs">
-          <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
+        <div className="mt-2 text-center text-xs">
+          <div className="text-green-700 mb-2">
+            <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
+          </div>
+         
+
+          <Button
+            onClick={handleShareOnX}
+            className="inline-flex items-center gap-1.5"
+            style={{ cursor: 'pointer' }}
+            aria-label="Share on X"
+            title="Share on X"
+          >
+            <span>Share on</span>
+            <Image src="/x.webp" alt="X" width={24} height={24} />
+          </Button>
         </div>
       )}
     </div>
@@ -429,7 +448,7 @@ export default function ArtDrop() {
   });
 
   const [season, setSeason] = useState(0);      // 0 = Season 1
-  const [tab, setTab] = useState(0);            // index in the Card tabs (0..6)
+  const [tab, setTab] = useState(0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 360 }}>
@@ -439,7 +458,6 @@ export default function ArtDrop() {
         {/* Seasons */}
         <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
           <Tab title="Season 1" className="mb-2">
-            {/* Cards (manual, Card 1 enabled; others disabled with tooltip) */}
             <Tabs value={tab} onChange={setTab} className="mb-2">
               <Tab title="Card 1">
                 <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} />
