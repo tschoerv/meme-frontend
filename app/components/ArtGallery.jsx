@@ -313,27 +313,25 @@ export default function ArtGallery() {
   const [lightboxItem, setLightboxItem] = useState(null); // { type, src, title, artist, poster, gif }
 
   const sortedArtworks = useMemo(() => {
-    const byArtist = (a, b) =>
-      (a.artist || '').localeCompare(b.artist || '', undefined, { sensitivity: 'base' });
+  const byArtist = (a, b) =>
+    (a.artist || '').localeCompare(b.artist || '', undefined, { sensitivity: 'base' });
 
-    const withSrc = [];
-    const withoutSrc = [];
+  const withSrc = ARTWORK_LIST.filter(a => !!a.src);
+  const withoutSrc = ARTWORK_LIST.filter(a => !a.src);
 
-    for (const a of ARTWORK_LIST) {
-      (a.src ? withSrc : withoutSrc).push(a);
-    }
+  // With media: sort by numeric id asc
+  withSrc.sort((a, b) => {
+    const ia = Number.isFinite(+a.id) ? +a.id : Infinity;
+    const ib = Number.isFinite(+b.id) ? +b.id : Infinity;
+    if (ia !== ib) return ia - ib;
+    return byArtist(a, b);
+  });
 
-    withSrc.sort((a, b) => {
-      const ca = Number.isFinite(+a.card) ? +a.card : Infinity;
-      const cb = Number.isFinite(+b.card) ? +b.card : Infinity;
-      if (ca !== cb) return ca - cb;       // by card number
-      return byArtist(a, b);               // tie-break by artist
-    });
+  // Without media: alphabetical by artist
+  withoutSrc.sort(byArtist);
 
-    withoutSrc.sort(byArtist);             // pure alpha by artist
-
-    return [...withSrc, ...withoutSrc];
-  }, []);
+  return [...withSrc, ...withoutSrc];
+}, []);
 
 
   const openLightbox = (item) => {
@@ -350,7 +348,6 @@ export default function ArtGallery() {
               {sortedArtworks.map((artwork) => {
                 const hasMedia = Boolean(artwork.src);
                 const hasPfp = Boolean(artwork.pfp);
-                const hasCard = Boolean(artwork.card);
                 const isActive = activeVideoId === artwork.id;
 
                 return (
@@ -364,13 +361,12 @@ export default function ArtGallery() {
 
                     <div className="flex flex-col gap-1 text-xs">
                       {hasMedia && (
+                        <div className="flex flex-col gap-1">
                         <span className="font-semibold leading-tight">{artwork.title}</span>
-                      )}
-
-                      {hasCard && (
                         <span className="text-xs leading-tight text-gray-700 italic mt-0.5">
-                          Card {artwork.card}, {EDITION_SEASON_1}
+                          Card {artwork.id}, {EDITION_SEASON_1}
                         </span>
+                        </div>
                       )}
 
                       <div className="flex items-center justify-between">
@@ -400,7 +396,7 @@ export default function ArtGallery() {
 
                         {hasMedia && (
                           <a
-                            href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.card}`}
+                            href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="shrink-0"
