@@ -11,6 +11,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import ConnectButton95 from './ConnectButton95';
 import Image from "next/image";
 import { ART_DROP_ABI } from '../abi/artDropAbi.js';
@@ -45,6 +46,7 @@ function CardPanel({ id, isActive, isPaused }) {
   const [pendingMint, setPendingMint] = useState(null); // snapshot before tx
   const [mintSuccess, setMintSuccess] = useState(null); // store confirmed tx
 
+  const qc = useQueryClient();
 
   useEffect(() => {
     const t = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 1000);
@@ -98,9 +100,9 @@ function CardPanel({ id, isActive, isPaused }) {
 
 
   // Normalize both shapes (named OR indexed)
-  const priceRaw = saleTuple && (saleTuple.priceWei  ?? saleTuple[0]);
-  const stRaw    = saleTuple && (saleTuple.startTime ?? saleTuple[1]);
-  const maxRaw   = saleTuple && (saleTuple.maxPerTx  ?? saleTuple[2]);
+  const priceRaw = saleTuple && (saleTuple.priceWei ?? saleTuple[0]);
+  const stRaw = saleTuple && (saleTuple.startTime ?? saleTuple[1]);
+  const maxRaw = saleTuple && (saleTuple.maxPerTx ?? saleTuple[2]);
 
   const startTime = Number(stRaw ?? 0);
   const maxPerTx = Number(maxRaw ?? 0);
@@ -127,12 +129,14 @@ function CardPanel({ id, isActive, isPaused }) {
   const discounted = price > 0n && price < priceWeiRaw;
 
   // Read inventory
-  const { data: inv } = useReadContract({
+  const { data: inv, queryKey: balKey } = useReadContract({
     address: MEME_ART_ADDR, abi: ERC1155_ABI, functionName: 'balanceOf',
     args: [ART_DROP_ADDR, id],
     enabled: hasContract && isActive,
   });
   const inventory = Number(inv ?? 0);
+
+  const soldOut = inventory === 0;
 
   // Amount & totals
   const amountNum = Math.max(0, Math.floor(Number(amountStr || '0')));
@@ -218,8 +222,10 @@ function CardPanel({ id, isActive, isPaused }) {
         hash: txHash,
       });
       setPendingMint(null);
+
+      qc.invalidateQueries({ queryKey: balKey });
     }
-  }, [mined, txHash, pendingMint, id]);
+  }, [mined, txHash, pendingMint, id, qc, balKey]);
 
   const handleShareOnX = () => {
     if (!art?.src) return;
@@ -236,22 +242,26 @@ function CardPanel({ id, isActive, isPaused }) {
   return (
     <div style={{ minWidth: 360 }}>
       <Fieldset legend={`Mint Status`} width="360px" className="flex flex-col mb-3">
-        <Checkbox readOnly checked={saleOpen && !isPaused}>
-          {saleClosed ? 'Sale Closed' : saleBefore ? `Opens in ${opensIn}` : 'Sale Open'}
+        <Checkbox readOnly checked={saleOpen && !isPaused && !soldOut}>
+          {saleClosed
+            ? 'Sale Closed'
+            : saleBefore
+              ? `Opens in ${opensIn}`
+              : isPaused
+                ? 'Paused'
+                : soldOut
+                  ? 'Sale Closed'
+                  : 'Sale Open'}
         </Checkbox>
 
-        <Checkbox readOnly checked>
+        <Checkbox readOnly checked={!soldOut}>
           {`Available: ${inventory}/100`}
         </Checkbox>
 
         <Checkbox readOnly checked={discounted}>
-          <Tooltip text={`Hold 100 MEME to receive a ${DISCOUNT_PCT_SEASON_1}% discount`} delay={300}>
+          <Tooltip text={`Hold 100 MEME to receive a ${DISCOUNT_PCT_SEASON_1}% discount`} delay={200}>
             <u>{`MEME Holders Discount: ${DISCOUNT_PCT_SEASON_1}%`}</u>
           </Tooltip>
-        </Checkbox>
-
-        <Checkbox readOnly checked>
-          {`Purchase Limit per Tx: ${maxPerTx === 0 ? 'No Limit' : maxPerTx}`}
         </Checkbox>
       </Fieldset>
 
@@ -262,8 +272,8 @@ function CardPanel({ id, isActive, isPaused }) {
             className="overflow-hidden"
             style={{
               position: 'relative',
-              width: 280,
-              height: 280,
+              width: 320,
+              height: 213,
               border: '1px solid var(--material)',
               boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
               background: '#000',
@@ -278,8 +288,8 @@ function CardPanel({ id, isActive, isPaused }) {
                 ref={videoRef}
                 src={art.src}
                 poster={art.poster}
-                width={280}
-                height={280}
+                width={320}
+                height={213}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
                 muted={muted}
                 loop
@@ -291,8 +301,8 @@ function CardPanel({ id, isActive, isPaused }) {
               <img
                 src={art.thumb}
                 alt={`${art.title} by ${art.artist}`}
-                width={280}
-                height={280}
+                width={320}
+                height={213}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
               />
             )}
@@ -395,14 +405,14 @@ function CardPanel({ id, isActive, isPaused }) {
       </div>
 
       <div className="flex items-center justify-center mt-3">
-        <Button disabled={!canBuy} onClick={handleBuy} className="w-[280px]" style={{ cursor: 'pointer' }}>
+        <Button disabled={!canBuy} onClick={handleBuy} className="w-[320px]" style={{ cursor: 'pointer' }}>
           {buyLabel}
         </Button>
       </div>
 
       {mintSuccess && mintSuccess.id === id && (
-        <div className="mt-2 text-center text-xs">
-          <div className="text-green-700 mb-2">
+        <div className="text-center text-xs">
+          <div className="text-green-700 mb-2 mt-2.5">
             <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
           </div>
 
@@ -446,27 +456,27 @@ export default function ArtDrop() {
               </Tab>
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Sept 30th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 3</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 7th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 3</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 14th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 21th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Nov 4th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Nov 11th" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
 
             </Tabs>
             <div className="flex flex-row justify-center mt-2 mb-0">
@@ -482,7 +492,7 @@ export default function ArtDrop() {
           </Tab>
 
           {/* Season 2 placeholder */}
-          <Tab title={<Tooltip text="soon!" delay={300} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Season 2</Tooltip>} disabled />
+          <Tab title={<Tooltip text="soon!" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Season 2</Tooltip>} disabled />
         </Tabs>
       </div>
     </div>
