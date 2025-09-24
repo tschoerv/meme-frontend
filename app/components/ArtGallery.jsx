@@ -313,24 +313,11 @@ export default function ArtGallery() {
   const [lightboxItem, setLightboxItem] = useState(null); // { type, src, title, artist, poster, gif }
 
   const sortedArtworks = useMemo(() => {
-  const byArtist = (a, b) =>
-    (a.artist || '').localeCompare(b.artist || '', undefined, { sensitivity: 'base' });
-
-  const withSrc = ARTWORK_LIST.filter(a => !!a.src);
-  const withoutSrc = ARTWORK_LIST.filter(a => !a.src);
-
-  // With media: sort by numeric id asc
-  withSrc.sort((a, b) => {
+  return [...ARTWORK_LIST].sort((a, b) => {
     const ia = Number.isFinite(+a.id) ? +a.id : Infinity;
     const ib = Number.isFinite(+b.id) ? +b.id : Infinity;
-    if (ia !== ib) return ia - ib;
-    return byArtist(a, b);
+    return ia - ib; // ascending by id
   });
-
-  // Without media: alphabetical by artist
-  withoutSrc.sort(byArtist);
-
-  return [...withSrc, ...withoutSrc];
 }, []);
 
 
@@ -367,6 +354,12 @@ export default function ArtGallery() {
                           Card {artwork.id}, {EDITION_SEASON_1}
                         </span>
                         </div>
+                      )}
+
+                      {!hasMedia && (
+                        <span className="text-xs leading-tight text-gray-700 italic">
+                          Drops {artwork.drops}, 5PM EST
+                        </span>
                       )}
 
                       <div className="flex items-center justify-between">
