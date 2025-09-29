@@ -298,7 +298,7 @@ function CardPanel({ id, isActive, isPaused }) {
                 controls={false}
               />
             ) : (
-              <img
+              <Image
                 src={art.thumb}
                 alt={`${art.title} by ${art.artist}`}
                 width={320}
@@ -343,23 +343,43 @@ function CardPanel({ id, isActive, isPaused }) {
             )}
           </div>
 
-          <div className="mt-2 text-xs text-center" style={{ maxWidth: 320, lineHeight: 1.3 }}>
+          <div
+            className="mt-2 text-xs text-center"
+            style={{ maxWidth: 320, lineHeight: 1.3 }}
+          >
             <strong>{art.title}</strong>
             <span> — </span>
-            {art.twitter ? (
-              <a
-                href={`https://x.com/${art.twitter}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'underline' }}
-                title={`Open ${art.artist} on X (Twitter)`}
-              >
-                {art.artist}
-              </a>
-            ) : (
-              <span>{art.artist}</span>
-            )}
+
+            <span className="inline-flex items-center gap-1 align-middle">
+              {art.pfp && (
+                <Image
+                  src={art.pfp}
+                  alt={art.artist}
+                  loading="lazy"
+                  decoding="async"
+                  className="rounded-full object-cover border border-black/10 inline-block relative -top-[1.5px]"
+                  style={{ verticalAlign: 'middle' }}
+                  width={24}
+                  height={24}
+                />
+              )}
+
+              {art.twitter ? (
+                <a
+                  href={`https://x.com/${art.twitter}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                  title={`Open ${art.artist} on X (Twitter)`}
+                >
+                  {art.artist}
+                </a>
+              ) : (
+                <span>{art.artist}</span>
+              )}
+            </span>
           </div>
+
         </div>
       )}
 

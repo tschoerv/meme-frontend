@@ -5,6 +5,7 @@ import { Winhlp324000 } from '@react95/icons';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ARTWORK_LIST, EDITION_SEASON_1 } from '../config/artworks';
+import Image from 'next/image';
 
 const MEME_ART_ADDR = process.env.NEXT_PUBLIC_MEME_ART_ADDRESS;
 
@@ -64,7 +65,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
 
   if (!artwork.src) {
     return (
-      <div className="flex items-center justify-center bg-[#dcdcdc] h-[200px] md:h-[250px]">
+      <div className="flex items-center justify-center bg-[#dcdcdc] h-[200px] md:h-[250px] min-w-[297px] md:min-w-[375px]">
         <div className="relative w-[48px] h-[48px]">
           <Winhlp324000 variant="32x32_4" className="absolute inset-0 w-full h-full object-contain" />
         </div>
@@ -83,12 +84,14 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
       >
         {/* Images: show a lightweight thumb in grid */}
         {!isVideo && (
-          <img
+          <Image
             src={thumb}
             alt={artwork.title || `Artwork ${artwork.id}`}
             loading="lazy"
             decoding="async"
             className="w-full h-full object-contain"
+            width={full}
+            height={full}
           />
         )}
 
@@ -139,7 +142,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
               cursor: 'pointer',
             }}
           >
-            <img
+            <Image
               src={isActive ? '/icons/icons8-audio-50.png' : '/icons/icons8-mute-50.png'}
               alt={isActive ? 'Unmuted' : 'Muted'}
               width={20}
@@ -214,10 +217,12 @@ function Lightbox({ item, onClose }) {
         {/* Sized wrapper controls final media size across breakpoints */}
         <div className="relative w-[85vw] h-[80vh] md:w-[65vw] md:h-[65vh]">
           {item.type === 'image' ? (
-            <img
+            <Image
               src={item.src}
               alt={item.title || 'Artwork'}
               className="absolute inset-0 w-full h-full object-contain"
+              width={full}
+              height={full}
             />
           ) : (
             <>
@@ -293,7 +298,7 @@ function Lightbox({ item, onClose }) {
             }}
             className="absolute top-3 right-12"
           >
-            <img
+            <Image
               src={muted ? '/icons/icons8-mute-50.png' : '/icons/icons8-audio-50.png'}
               alt={muted ? 'Muted' : 'Unmuted'}
               width={20}
@@ -313,12 +318,12 @@ export default function ArtGallery() {
   const [lightboxItem, setLightboxItem] = useState(null); // { type, src, title, artist, poster, gif }
 
   const sortedArtworks = useMemo(() => {
-  return [...ARTWORK_LIST].sort((a, b) => {
-    const ia = Number.isFinite(+a.id) ? +a.id : Infinity;
-    const ib = Number.isFinite(+b.id) ? +b.id : Infinity;
-    return ia - ib; // ascending by id
-  });
-}, []);
+    return [...ARTWORK_LIST].sort((a, b) => {
+      const ia = Number.isFinite(+a.id) ? +a.id : Infinity;
+      const ib = Number.isFinite(+b.id) ? +b.id : Infinity;
+      return ia - ib; // ascending by id
+    });
+  }, []);
 
 
   const openLightbox = (item) => {
@@ -349,10 +354,10 @@ export default function ArtGallery() {
                     <div className="flex flex-col gap-1 text-xs">
                       {hasMedia && (
                         <div className="flex flex-col gap-1">
-                        <span className="font-semibold leading-tight">{artwork.title}</span>
-                        <span className="text-xs leading-tight text-gray-700 italic mt-0.5">
-                          Card {artwork.id}, {EDITION_SEASON_1}
-                        </span>
+                          <span className="font-semibold leading-tight">{artwork.title}</span>
+                          <span className="text-xs leading-tight text-gray-700 italic mt-0.5">
+                            Card {artwork.id}, {EDITION_SEASON_1}
+                          </span>
                         </div>
                       )}
 
@@ -365,12 +370,14 @@ export default function ArtGallery() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {hasPfp ? (
-                            <img
+                            <Image
                               src={artwork.pfp}
-                              alt={`${artwork.artist} avatar`}
+                              alt={artwork.artist}
                               loading="lazy"
                               decoding="async"
-                              className="h-5 w-5 md:h-6 md:w-6 rounded-full object-cover border border-black/10"
+                              className="rounded-full object-cover border border-black/10"
+                              width={24}
+                              height={24}
                             />
                           ) : (
                             <div className="h-5 w-5 md:h-6 md:w-6 rounded-full bg-[#dcdcdc] border border-black/10" />
@@ -396,7 +403,7 @@ export default function ArtGallery() {
                             aria-label="View on OpenSea"
                             title="View on OpenSea"
                           >
-                            <img src="/icons/os_logo.webp" alt="OpenSea" className="h-5 w-5" />
+                            <Image src="/icons/os_logo.webp" alt="OpenSea" width={20} height={20} />
                           </a>
                         )}
                       </div>
