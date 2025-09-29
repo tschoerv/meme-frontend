@@ -370,7 +370,7 @@ function CardPanel({ id, isActive, isPaused }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
-                  title={`Open ${art.artist} on X (Twitter)`}
+                  title={`View on X`}
                 >
                   {art.artist}
                 </a>
@@ -505,6 +505,7 @@ export default function ArtDrop() {
                 href={`https://etherscan.io/address/${ART_DROP_ADDR}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={`View on Etherscan`}
               >
                 <span>[{ART_DROP_ADDR?.slice(0, 6)}…{ART_DROP_ADDR?.slice(-4)}]</span>
               </a>
