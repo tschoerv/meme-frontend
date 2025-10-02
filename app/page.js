@@ -21,6 +21,7 @@ import {
 } from '@react95/icons';
 import Image from 'next/image';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { SuccessModalProvider } from './contexts/SuccessModalContext';
 
 /* ─── your components ─── */
 import Airdrop from './components/Airdrop';
@@ -87,6 +88,7 @@ function MemeHomepage() {
     gallery: false
   });
   const [openCount, setOpenCount] = useState(0);
+  const [artDropPos, setArtDropPos] = useState({ x: 0, y: 0 });
 
   const desktopShortcuts = [
     { key: 'airdrop', label: 'Airdrop', Icon: Optional3000 },
@@ -104,6 +106,12 @@ function MemeHomepage() {
     setShow((s) => ({ ...s, [id]: true }));
     setOpenCount((c) => c + 1); // Track how many modals have been opened
     modal.restore(id);
+    if (id === 'artDrop') {
+      // seed with the initial position you'll use for defaultPosition below
+      const p = getDragPos(openCount);
+      setArtDropPos(p);
+      console.log(p)
+    }
     setTimeout(() => modal.focus(id), 0);
   };
 
@@ -125,7 +133,7 @@ function MemeHomepage() {
     };
   };
 
- useEffect(() => {
+  useEffect(() => {
     if (openedOnce.current) return;
 
     const raw = params.get('open'); // e.g. ?open=mint,dao
@@ -137,9 +145,9 @@ function MemeHomepage() {
         .map(s => s.trim())
         .map(s => {
           const hit = ALIAS[s.toLowerCase()];
-          return hit || s;                
+          return hit || s;
         })
-        .filter(id => VALID.has(id))       
+        .filter(id => VALID.has(id))
     ));
 
     if (!ids.length) return;
@@ -359,7 +367,15 @@ function MemeHomepage() {
           id="artDrop"
           title="ArtDrop.exe"
           icon={<Brush variant="32x32_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={{
+            defaultPosition: getDragPos(openCount),
+            onDragEnd: (data) => {
+              // data.x / data.y are from react-draggable
+              setArtDropPos({ x: data.offsetX - 20, y: data.offsetY -20 });
+              console.log(data.offsetX-20, data.offsetY-20)
+            },
+            onDragStart: () => modal.focus('artDrop'),
+          }}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('artDrop')} />,
@@ -368,7 +384,7 @@ function MemeHomepage() {
           {/* Adjust size to your component’s needs */}
           <Modal.Content width={520} className="max-h-[88vh]" boxShadow="$in">
             <div className="overflow-auto h-full">
-              <ArtDrop />
+              <ArtDrop anchorPos={artDropPos} />
             </div>
           </Modal.Content>
         </Modal>
@@ -381,7 +397,9 @@ function MemeHomepage() {
 export default function MemeHomepageWrapper() {
   return (
     <DesktopProvider>
-      <MemeHomepage />
+      <SuccessModalProvider>
+        <MemeHomepage />
+      </SuccessModalProvider>
     </DesktopProvider>
   );
 }

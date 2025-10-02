@@ -18,6 +18,7 @@ import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
 import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1 } from '../config/artworks';
 import { useIsTouchDevice } from '../hooks/useIsTouchDevice';
+import { useSuccessModal } from '../contexts/SuccessModalContext';
 
 /* ───────────────── Config ───────────────── */
 const ART_DROP_ADDR = process.env.NEXT_PUBLIC_ART_DROP_ADDRESS;
@@ -39,13 +40,15 @@ const fmtTime = (seconds) => {
 };
 
 /* ───────────────── Tab body component ───────────────── */
-function CardPanel({ id, isActive, isPaused }) {
+function CardPanel({ id, isActive, isPaused, anchorPos }) {
   const { address: caller, isConnected } = useAccount();
   const [amountStr, setAmountStr] = useState('1');
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
 
   const [pendingMint, setPendingMint] = useState(null); // snapshot before tx
   const [mintSuccess, setMintSuccess] = useState(null); // store confirmed tx
+
+  const { open: openSuccessModal } = useSuccessModal();
 
   const qc = useQueryClient();
 
@@ -218,15 +221,24 @@ function CardPanel({ id, isActive, isPaused }) {
   // When mined, show success
   useEffect(() => {
     if (mined && txHash && pendingMint && pendingMint.id === id) {
-      setMintSuccess({
-        ...pendingMint,
-        hash: txHash,
-      });
+      setMintSuccess({ ...pendingMint, hash: txHash });
       setPendingMint(null);
-
       qc.invalidateQueries({ queryKey: balKey });
+
+      const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${id}`;
+      openSuccessModal(
+        {
+          amount: pendingMint.amount,
+          title: art?.title,
+          artist: art?.artist,
+          twitter: art?.twitter,
+          osUrl,
+          xText: `Just minted “${art?.title}” by @${art?.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨\n@Memecoin2016`,
+        },
+        { anchor: anchorPos } // ← position the success window based on ArtDrop’s current position
+      );
     }
-  }, [mined, txHash, pendingMint, id, qc, balKey]);
+  }, [mined, txHash, pendingMint, id, qc, balKey, art, anchorPos]);
 
   const handleShareOnX = () => {
     if (!art?.src) return;
@@ -239,7 +251,7 @@ function CardPanel({ id, isActive, isPaused }) {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
- const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.matchMedia('(max-width: 767px)').matches);
     check();
@@ -248,8 +260,8 @@ function CardPanel({ id, isActive, isPaused }) {
   }, []);
 
   // 12.5% smaller on mobile
-  const MEDIA_W = isMobile ? 280 : 320; 
-  const MEDIA_H = isMobile ? 186 : 213;  
+  const MEDIA_W = isMobile ? 280 : 320;
+  const MEDIA_H = isMobile ? 186 : 213;
 
   return (
     <div className="min-w-[320px] md:min-w-[360px]">
@@ -453,7 +465,7 @@ function CardPanel({ id, isActive, isPaused }) {
         </div>
       </div>
 
-
+{/*
       {mintSuccess && mintSuccess.id === id && (
         <div className="text-center text-xs">
           <div className="text-green-700 mb-2 mt-2.5">
@@ -471,13 +483,13 @@ function CardPanel({ id, isActive, isPaused }) {
             <Image src="/x.webp" alt="X" width={24} height={24} />
           </Button>
         </div>
-      )}
+      )}*/}
     </div>
   );
 }
 
 /* ───────────────── Main component ───────────────── */
-export default function ArtDrop() {
+export default function ArtDrop({ anchorPos }) {
   const { data: isPaused } = useReadContract({
     address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'paused',
     enabled: !!ART_DROP_ADDR,
@@ -495,9 +507,9 @@ export default function ArtDrop() {
         {/* Seasons */}
         <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
           <Tab title="Season 1" className="mb-2">
-            <Tabs value={tab} onChange={setTab} className="mb-2">
+            <Tabs value={tab} defaultActiveTab="Card 1" onChange={setTab} className="mb-2">
               <Tab title="Card 1">
-                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} />
+                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} anchorPos={anchorPos}/>
               </Tab>
 
 
