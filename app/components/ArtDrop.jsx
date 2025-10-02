@@ -17,6 +17,7 @@ import Image from "next/image";
 import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
 import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1 } from '../config/artworks';
+import { useIsTouchDevice } from '../hooks/useIsTouchDevice';
 
 /* ───────────────── Config ───────────────── */
 const ART_DROP_ADDR = process.env.NEXT_PUBLIC_ART_DROP_ADDRESS;
@@ -238,10 +239,21 @@ function CardPanel({ id, isActive, isPaused }) {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+ const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // 12.5% smaller on mobile
+  const MEDIA_W = isMobile ? 280 : 320; 
+  const MEDIA_H = isMobile ? 186 : 213;  
 
   return (
-    <div style={{ minWidth: 360 }}>
-      <Fieldset legend={`Mint Status`} width="360px" className="flex flex-col mb-3">
+    <div className="min-w-[320px] md:min-w-[360px]">
+      <Fieldset legend={`Mint Status`} className="w-[320px] md:w-[360px] flex flex-col mb-3">
         <Checkbox readOnly checked={saleOpen && !isPaused && !soldOut}>
           {saleClosed
             ? 'Sale Closed'
@@ -267,13 +279,13 @@ function CardPanel({ id, isActive, isPaused }) {
 
       {/* Artwork preview */}
       {art?.src && (
-        <div className="flex flex-col items-center mb-3" style={{ minWidth: 360 }}>
+        <div className="flex flex-col items-center mb-3 w-[320px] md:w-[360px]">
           <div
             className="overflow-hidden"
             style={{
               position: 'relative',
-              width: 320,
-              height: 213,
+              width: MEDIA_W,
+              height: MEDIA_H,
               border: '1px solid var(--material)',
               boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
               background: '#000',
@@ -288,8 +300,8 @@ function CardPanel({ id, isActive, isPaused }) {
                 ref={videoRef}
                 src={art.src}
                 poster={art.poster}
-                width={320}
-                height={213}
+                width={MEDIA_W}
+                height={MEDIA_H}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
                 muted={muted}
                 loop
@@ -301,8 +313,8 @@ function CardPanel({ id, isActive, isPaused }) {
               <Image
                 src={art.thumb}
                 alt={`${art.title} by ${art.artist}`}
-                width={320}
-                height={213}
+                width={MEDIA_W}
+                height={MEDIA_H}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
               />
             )}
@@ -344,8 +356,8 @@ function CardPanel({ id, isActive, isPaused }) {
           </div>
 
           <div
-            className="mt-2 text-xs text-center"
-            style={{ maxWidth: 320, lineHeight: 1.3 }}
+            className="mt-2 text-xs text-center w-[280px] md:w-[320px]"
+            style={{ lineHeight: 1.3 }}
           >
             <strong>{art.title}</strong>
             <span> — </span>
@@ -425,10 +437,22 @@ function CardPanel({ id, isActive, isPaused }) {
       </div>
 
       <div className="flex items-center justify-center mt-3">
-        <Button disabled={!canBuy} onClick={handleBuy} className="w-[320px]" style={{ cursor: 'pointer' }}>
-          {buyLabel}
-        </Button>
+        <div className="w-[280px] md:w-[320px]">
+          {!isConnected ? (
+            <ConnectButton95 />
+          ) : (
+            <Button
+              disabled={!canBuy}
+              onClick={handleBuy}
+              className="w-full"
+              style={{ cursor: 'pointer' }}
+            >
+              {buyLabel}
+            </Button>
+          )}
+        </div>
       </div>
+
 
       {mintSuccess && mintSuccess.id === id && (
         <div className="text-center text-xs">
@@ -461,6 +485,7 @@ export default function ArtDrop() {
 
   const [season, setSeason] = useState(0);      // 0 = Season 1
   const [tab, setTab] = useState(0);
+  const isTouch = useIsTouchDevice();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 360 }}>
@@ -492,11 +517,11 @@ export default function ArtDrop() {
 
 
 
-              <Tab title={<Tooltip text="Drops Nov 4th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
+              <Tab title={<Tooltip text={isTouch ? ("Nov 4th, 5PM EST") : ("Drops Nov 4th, 5PM EST")} delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="Drops Nov 11th" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
+              <Tab title={<Tooltip text={isTouch ? ("Nov 11th") : ("Drops Nov 11th")} delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
 
             </Tabs>
             <div className="flex flex-row justify-center mt-2 mb-0">
