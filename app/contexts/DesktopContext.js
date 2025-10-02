@@ -6,6 +6,12 @@ const DesktopContext = createContext();
 export function DesktopProvider({ children }) {
   const [desktopItems, setDesktopItems] = useState({
     logo: true,
+    airdrop: true,
+    tokenomics: true,
+    info: true,
+    dao: true,
+    gallery: true,
+    artDrop: true,
     discord: true,
     x: true,
     dexscreener: true,
@@ -24,3 +30,4 @@ export function DesktopProvider({ children }) {
 }
 
 export const useDesktop = () => useContext(DesktopContext);
+

@@ -8,6 +8,9 @@ const nextConfig = {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
   },
+  async redirects() {
+    return [{ source: '/mint', destination: '/?open=mint', permanent: false }];
+  },
 };
 
 export default nextConfig;

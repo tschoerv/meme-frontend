@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   TaskBar,
   List,
@@ -16,9 +16,11 @@ import {
   Mshtml32540,
   Wordpad,
   Shell3242,
-  Wangimg128
+  Wangimg128,
+  Brush
 } from '@react95/icons';
 import Image from 'next/image';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 /* ─── your components ─── */
 import Airdrop from './components/Airdrop';
@@ -33,6 +35,9 @@ import { useIsTouchDevice } from './hooks/useIsTouchDevice';
 /* ─────────────────────── */
 
 const slogan = 'First Meme on ETH';
+
+const VALID = new Set(['logo', 'airdrop', 'tokenomics', 'info', 'dao', 'artDrop', 'gallery']);
+const ALIAS = { mint: 'artDrop', lore: 'info', artdrop: 'artDrop' };
 
 /* ─── Start-menu helper ───────────────────────────────────────────── */
 function StartMenu({ open }) {
@@ -54,7 +59,7 @@ function StartMenu({ open }) {
         <List.Item icon={<Wangimg128 variant="32x32_4" />} onClick={() => open('gallery')} style={{ cursor: 'pointer' }}>
           Gallery
         </List.Item>
-        <List.Item icon={<Mshtml32540 variant="32x32_4" />} onClick={() => open('artDrop')} style={{ cursor: 'pointer' }}>
+        <List.Item icon={<Brush variant="32x32_4" />} onClick={() => open('artDrop')} style={{ cursor: 'pointer' }}>
           Art Drop
         </List.Item>
       </List>
@@ -67,6 +72,10 @@ function MemeHomepage() {
   const isTouch = useIsTouchDevice();
   const { desktopItems } = useDesktop();
   const modal = useModal();
+  const params = useSearchParams();
+  const openedOnce = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [show, setShow] = useState({
     logo: false,
@@ -75,9 +84,18 @@ function MemeHomepage() {
     info: false,
     dao: false,
     artDrop: false,
-    gallery:false
+    gallery: false
   });
   const [openCount, setOpenCount] = useState(0);
+
+  const desktopShortcuts = [
+    { key: 'airdrop', label: 'Airdrop', Icon: Optional3000 },
+    { key: 'tokenomics', label: 'Tokenomics', Icon: Drvspace1 },
+    { key: 'info', label: 'Lore', Icon: Shell3242 },
+    { key: 'dao', label: 'MemeDAO', Icon: InfoBubble },
+    { key: 'gallery', label: 'Gallery', Icon: Wangimg128 },
+    { key: 'artDrop', label: 'ArtDrop', Icon: Brush },
+  ];
 
   /* helpers -------------------------------------------------------- */
 
@@ -106,6 +124,38 @@ function MemeHomepage() {
       y: baseY + indexOffset * 20,
     };
   };
+
+ useEffect(() => {
+    if (openedOnce.current) return;
+
+    const raw = params.get('open'); // e.g. ?open=mint,dao
+    if (!raw) return;
+
+    const ids = Array.from(new Set(
+      raw
+        .split(',')
+        .map(s => s.trim())
+        .map(s => {
+          const hit = ALIAS[s.toLowerCase()];
+          return hit || s;                
+        })
+        .filter(id => VALID.has(id))       
+    ));
+
+    if (!ids.length) return;
+
+    openedOnce.current = true;
+
+    // open then strip ?open=... from the URL (preserve other params)
+    setTimeout(() => {
+      ids.forEach(id => open(id));
+
+      const sp = new URLSearchParams(Array.from(params.entries()));
+      sp.delete('open');
+      const newUrl = sp.toString() ? `${pathname}?${sp.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    }, 0);
+  }, [params, pathname, router]);
 
   /* ---------------------------------------------------------------- */
   return (
@@ -143,7 +193,33 @@ function MemeHomepage() {
       {/* Wallpaper centrepiece */}
       <div className="flex flex-col items-center justify-center h-screen select-none">
         <Image src="/logo.webp" alt="logo" width={200} height={200} className="pointer-events-none" />
-        <p className="mt-4 text-lg">{slogan}</p>
+        <p className="mt-4 mb-16 text-lg">{slogan}</p>
+        {!isTouch && (
+          <div className="hidden gap-1 mb-8 md:flex md:flex-wrap md:justify-center">
+            {desktopShortcuts.map(({ key, label, Icon }) => {
+              if (!desktopItems[key]) return null;
+
+              const handleOpen = () => open(key);
+
+              return (
+                <Button
+                  key={key}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData('text/plain', key)}
+                  style={{ width: 78, background: 'transparent', boxShadow: 'none', cursor: 'pointer' }}
+                  className="flex flex-col items-center space-y-1"
+                  onClick={isTouch ? handleOpen : undefined}
+                  onDoubleClick={!isTouch ? handleOpen : undefined}
+                >
+                  <div className="relative w-[48px] h-[48px]">
+                    <Icon variant="32x32_4" className="absolute inset-0 w-full h-full object-contain" />
+                  </div>
+                  <span className="text-xs text-center">{label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        )}
         <Socials />
       </div>
 
@@ -282,7 +358,7 @@ function MemeHomepage() {
         <Modal
           id="artDrop"
           title="ArtDrop.exe"
-          icon={<Mshtml32540 variant="16x16_4" />}
+          icon={<Brush variant="32x32_4" />}
           dragOptions={{ defaultPosition: getDragPos(openCount) }}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
@@ -292,7 +368,7 @@ function MemeHomepage() {
           {/* Adjust size to your component’s needs */}
           <Modal.Content width={520} className="max-h-[88vh]" boxShadow="$in">
             <div className="overflow-auto h-full">
-            <ArtDrop />
+              <ArtDrop />
             </div>
           </Modal.Content>
         </Modal>
@@ -309,3 +385,6 @@ export default function MemeHomepageWrapper() {
     </DesktopProvider>
   );
 }
+
+
+
