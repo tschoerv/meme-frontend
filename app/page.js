@@ -40,6 +40,15 @@ const slogan = 'First Meme on ETH';
 const VALID = new Set(['logo', 'airdrop', 'tokenomics', 'info', 'dao', 'artDrop', 'gallery']);
 const ALIAS = { mint: 'artDrop', lore: 'info', artdrop: 'artDrop' };
 
+// --- tiny helper to parse card numbers like 3, card-3, c3, etc.
+function normalizeCardParam(raw) {
+  if (!raw) return null;
+  const m = String(raw).toLowerCase().match(/(\d+)/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return Number.isFinite(n) && n >= 1 && n <= 7 ? n : null; // adjust upper bound as needed
+}
+
 /* ─── Start-menu helper ───────────────────────────────────────────── */
 function StartMenu({ open }) {
   return (
@@ -78,6 +87,7 @@ function MemeHomepage() {
   const router = useRouter();
   const pathname = usePathname();
 
+
   const [show, setShow] = useState({
     logo: false,
     airdrop: false,
@@ -89,6 +99,7 @@ function MemeHomepage() {
   });
   const [openCount, setOpenCount] = useState(0);
   const [artDropPos, setArtDropPos] = useState({ x: 0, y: 0 });
+  const [artDropDefaultCard, setArtDropDefaultCard] = useState(null);
 
   const desktopShortcuts = [
     { key: 'airdrop', label: 'Airdrop', Icon: Optional3000 },
@@ -101,7 +112,11 @@ function MemeHomepage() {
 
   /* helpers -------------------------------------------------------- */
 
-  const open = (id) => {
+  const open = (id, payload = undefined) => {
+    if (id === 'artDrop') {
+      // if no payload provided (Start menu/shortcut), reset -> component uses latest drop
+      setArtDropDefaultCard(payload?.defaultCard ?? null);
+    }
     // ensure the element is mounted before focusing
     setShow((s) => ({ ...s, [id]: true }));
     setOpenCount((c) => c + 1); // Track how many modals have been opened
@@ -136,30 +151,38 @@ function MemeHomepage() {
   useEffect(() => {
     if (openedOnce.current) return;
 
-    const raw = params.get('open'); // e.g. ?open=mint,dao
-    if (!raw) return;
+    const rawOpen = params.get('open');
+    if (!rawOpen) return;
 
+    // ids from ?open=..., with aliases
     const ids = Array.from(new Set(
-      raw
+      rawOpen
         .split(',')
         .map(s => s.trim())
-        .map(s => {
-          const hit = ALIAS[s.toLowerCase()];
-          return hit || s;
-        })
-        .filter(id => VALID.has(id))
+        .map(s => ALIAS[s.toLowerCase()] || s)
+        .filter((id) => VALID.has(id))
     ));
 
     if (!ids.length) return;
 
+    // optional card param for ArtDrop
+    const deepCard = normalizeCardParam(params.get('card')) ?? normalizeCardParam(params.get('tab'));
+
     openedOnce.current = true;
 
-    // open then strip ?open=... from the URL (preserve other params)
     setTimeout(() => {
-      ids.forEach(id => open(id));
+      ids.forEach((id) => {
+        if (id === 'artDrop' && deepCard) {
+          open('artDrop', { defaultCard: deepCard });   // <-- pass card to modal
+        } else {
+          open(id);
+        }
+      });
 
       const sp = new URLSearchParams(Array.from(params.entries()));
       sp.delete('open');
+      sp.delete('card');
+      sp.delete('tab');
       const newUrl = sp.toString() ? `${pathname}?${sp.toString()}` : pathname;
       router.replace(newUrl, { scroll: false });
     }, 0);
@@ -371,8 +394,8 @@ function MemeHomepage() {
             defaultPosition: getDragPos(openCount),
             onDragEnd: (data) => {
               // data.x / data.y are from react-draggable
-              setArtDropPos({ x: data.offsetX - 20, y: data.offsetY -20 });
-              console.log(data.offsetX-20, data.offsetY-20)
+              setArtDropPos({ x: data.offsetX - 20, y: data.offsetY - 20 });
+              console.log(data.offsetX - 20, data.offsetY - 20)
             },
             onDragStart: () => modal.focus('artDrop'),
           }}
@@ -384,7 +407,7 @@ function MemeHomepage() {
           {/* Adjust size to your component’s needs */}
           <Modal.Content width={520} className="max-h-[88vh]" boxShadow="$in">
             <div className="overflow-auto h-full">
-              <ArtDrop anchorPos={artDropPos} />
+              <ArtDrop anchorPos={artDropPos} defaultCard={artDropDefaultCard}/>
             </div>
           </Modal.Content>
         </Modal>

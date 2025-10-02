@@ -464,40 +464,30 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
           )}
         </div>
       </div>
-
-{/*
-      {mintSuccess && mintSuccess.id === id && (
-        <div className="text-center text-xs">
-          <div className="text-green-700 mb-2 mt-2.5">
-            <span>Congrats! You minted {mintSuccess.amount} {mintSuccess.amount > 1 ? 'cards' : 'card'}!</span>
-          </div>
-
-          <Button
-            onClick={handleShareOnX}
-            className="inline-flex items-center gap-1.5"
-            style={{ cursor: 'pointer' }}
-            aria-label="Share on X"
-            title="Share on X"
-          >
-            <span>Share on</span>
-            <Image src="/x.webp" alt="X" width={24} height={24} />
-          </Button>
-        </div>
-      )}*/}
     </div>
   );
 }
 
 /* ───────────────── Main component ───────────────── */
-export default function ArtDrop({ anchorPos }) {
+export default function ArtDrop({ anchorPos, defaultCard = null }) {
   const { data: isPaused } = useReadContract({
     address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'paused',
     enabled: !!ART_DROP_ADDR,
   });
 
-  const [season, setSeason] = useState(0);      // 0 = Season 1
-  const [tab, setTab] = useState(0);
   const isTouch = useIsTouchDevice();
+  const LATEST_CARD = 1; // ← set this to latest drop card number
+
+  const isEnabled = (n) => n <= LATEST_CARD;
+  // pick initial card: deep-link wins, but clamp to latest enabled
+  const desired = defaultCard ?? LATEST_CARD;
+  const initialCard = isEnabled(desired) ? desired : LATEST_CARD;
+  const initialIndex = initialCard - 1;
+
+  const [season, setSeason] = useState(0);      // 0 = Season 1
+  const [tab, setTab] = useState(initialIndex);
+
+  const initialTitle = isEnabled(initialCard) ? `Card ${initialCard}` : `Card ${LATEST_CARD}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 360 }}>
@@ -507,25 +497,24 @@ export default function ArtDrop({ anchorPos }) {
         {/* Seasons */}
         <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
           <Tab title="Season 1" className="mb-2">
-            <Tabs value={tab} defaultActiveTab="Card 1" onChange={setTab} className="mb-2">
+            <Tabs value={tab} defaultActiveTab={initialTitle} onChange={setTab} className="mb-2">
               <Tab title="Card 1">
-                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} anchorPos={anchorPos}/>
+                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
-
-              <Tab title={<Tooltip text="Drops Sept 30th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
-
-
-
-              <Tab title={<Tooltip text="Drops Oct 7th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 3</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 7th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="Drops Oct 14th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 14th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 3</Tooltip>} disabled />
 
 
 
-              <Tab title={<Tooltip text="Drops Oct 21th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
+              <Tab title={<Tooltip text="Drops Oct 21th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
+
+
+
+              <Tab title={<Tooltip text="Drops Oct 28th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
 
 
 
