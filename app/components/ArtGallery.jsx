@@ -1,11 +1,12 @@
 'use client';
 
 import { Frame, Tabs, Tab, Cursor } from '@react95/core';
-import { Winhlp324000 } from '@react95/icons';
+import { Winhlp324000, Brush } from '@react95/icons';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ARTWORK_LIST, EDITION_SEASON_1 } from '../config/artworks';
 import Image from 'next/image';
+
 
 const MEME_ART_ADDR = process.env.NEXT_PUBLIC_MEME_ART_ADDRESS;
 
@@ -325,6 +326,14 @@ export default function ArtGallery() {
     });
   }, []);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
 
   const openLightbox = (item) => {
     setActiveVideoId(null); // ensure inline audio is muted while lightbox is open
@@ -395,16 +404,37 @@ export default function ArtGallery() {
                         </div>
 
                         {hasMedia && (
-                          <a
-                            href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0"
-                            aria-label="View on OpenSea"
-                            title="View on OpenSea"
-                          >
-                            <Image src="/icons/os_logo.webp" alt="OpenSea" width={20} height={20} />
-                          </a>
+                          <div className='shrink-0 flex items-center gap-2'>
+                            <div
+                              type="button"
+                              onClick={(e) => {
+                                const anchor = isMobile ? { x: 20, y: 20 } : { x: 110, y: 20 };
+                                window.__openArtDrop?.({ card: artwork.id, anchor });
+                              }}
+                              aria-label={`Open ArtDrop for card ${artwork.id}`}
+                              title="Open ArtDrop"
+                              className="inline-flex items-center justify-center leading-none"
+                            >
+                              <Brush
+                                variant="32x32_4"
+                                // these hit the underlying <img>, overriding intrinsic size
+                                width={22}
+                                height={22}
+                                style={{ width: 22, height: 22 }}
+                              />
+                            </div>
+                            
+                            <a
+                              href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0"
+                              aria-label="View on OpenSea"
+                              title="View on OpenSea"
+                            >
+                              <Image src="/icons/os_logo.webp" alt="OpenSea" width={22} height={22} className="block" />
+                            </a>
+                          </div>
                         )}
                       </div>
                     </div>

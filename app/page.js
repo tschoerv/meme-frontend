@@ -116,17 +116,19 @@ function MemeHomepage() {
     if (id === 'artDrop') {
       // if no payload provided (Start menu/shortcut), reset -> component uses latest drop
       setArtDropDefaultCard(payload?.defaultCard ?? null);
+      // if an anchor is provided (e.g., from Gallery button), forward it to ArtDrop
+      if (payload?.anchor && typeof payload.anchor.x === 'number' && typeof payload.anchor.y === 'number') {
+        setArtDropPos(payload.anchor);
+      } else {
+        // otherwise seed a nice default position
+        const p = getDragPos(openCount);
+        setArtDropPos(p);
+      }
     }
     // ensure the element is mounted before focusing
     setShow((s) => ({ ...s, [id]: true }));
     setOpenCount((c) => c + 1); // Track how many modals have been opened
     modal.restore(id);
-    if (id === 'artDrop') {
-      // seed with the initial position you'll use for defaultPosition below
-      const p = getDragPos(openCount);
-      setArtDropPos(p);
-      console.log(p)
-    }
     setTimeout(() => modal.focus(id), 0);
   };
 
@@ -187,6 +189,21 @@ function MemeHomepage() {
       router.replace(newUrl, { scroll: false });
     }, 0);
   }, [params, pathname, router]);
+
+
+  useEffect(() => {
+    // make Home’s ArtDrop modal controllable globally
+    window.__openArtDrop = ({ card, anchor }) => {
+      open('artDrop', { defaultCard: card ?? null, anchor });
+    };
+    window.__closeArtDrop = () => {
+      close('artDrop');
+    };
+    return () => {
+      delete window.__openArtDrop;
+      delete window.__closeArtDrop;
+    };
+  }, []);
 
   /* ---------------------------------------------------------------- */
   return (
@@ -407,7 +424,7 @@ function MemeHomepage() {
           {/* Adjust size to your component’s needs */}
           <Modal.Content width={520} className="max-h-[88vh]" boxShadow="$in">
             <div className="overflow-auto h-full">
-              <ArtDrop anchorPos={artDropPos} defaultCard={artDropDefaultCard}/>
+              <ArtDrop anchorPos={artDropPos} defaultCard={artDropDefaultCard} />
             </div>
           </Modal.Content>
         </Modal>
