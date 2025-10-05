@@ -85,14 +85,12 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
       >
         {/* Images: show a lightweight thumb in grid */}
         {!isVideo && (
-          <Image
+          <img
             src={thumb}
             alt={artwork.title || `Artwork ${artwork.id}`}
             loading="lazy"
             decoding="async"
             className="w-full h-full object-contain"
-            width={full}
-            height={full}
           />
         )}
 
@@ -218,12 +216,10 @@ function Lightbox({ item, onClose }) {
         {/* Sized wrapper controls final media size across breakpoints */}
         <div className="relative w-[85vw] h-[80vh] md:w-[65vw] md:h-[65vh]">
           {item.type === 'image' ? (
-            <Image
+            <img
               src={item.src}
               alt={item.title || 'Artwork'}
               className="absolute inset-0 w-full h-full object-contain"
-              width={full}
-              height={full}
             />
           ) : (
             <>

@@ -16,7 +16,7 @@ import ConnectButton95 from './ConnectButton95';
 import Image from "next/image";
 import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
-import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1 } from '../config/artworks';
+import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1, LATEST_CARD } from '../config/artworks';
 import { useIsTouchDevice } from '../hooks/useIsTouchDevice';
 import { useSuccessModal } from '../contexts/SuccessModalContext';
 
@@ -247,8 +247,8 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   }, []);
 
   // 12.5% smaller on mobile
-  const MEDIA_W = isMobile ? 280 : 320;
-  const MEDIA_H = isMobile ? 186 : 213;
+  const MEDIA_W = isMobile ? art.width*0.85 : art.width;
+  const MEDIA_H = isMobile ? art.height*0.85 : art.height;
 
   return (
     <div className="min-w-[320px] md:min-w-[360px]">
@@ -463,7 +463,6 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
   });
 
   const isTouch = useIsTouchDevice();
-  const LATEST_CARD = 1; // ← set this to latest drop card number
 
   const isEnabled = (n) => n <= LATEST_CARD;
   // pick initial card: deep-link wins, but clamp to latest enabled
@@ -485,11 +484,13 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
         <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
           <Tab title="Season 1" className="mb-2">
             <Tabs value={tab} defaultActiveTab={initialTitle} onChange={setTab} className="mb-2">
-              <Tab title="Card 1">
+              <Tab title="Card 1" style={{ cursor: 'pointer' }}>
                 <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
-              <Tab title={<Tooltip text="Drops Oct 7th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 2</Tooltip>} disabled />
+              <Tab title="Card 2" style={{ cursor: 'pointer' }}>
+                <CardPanel id={2} isActive={tab === 1} isPaused={!!isPaused} anchorPos={anchorPos}/>
+              </Tab>
 
 
 
