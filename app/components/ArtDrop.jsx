@@ -285,9 +285,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
               position: 'relative',
               width: MEDIA_W,
               height: MEDIA_H,
-              border: '1px solid var(--material)',
-              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
-              background: '#000',
+
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -474,11 +472,17 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
     return now >= (du - 12 * 3600);
   };
   const desired = defaultCard ?? LATEST_CARD;
-  let initialCard = isEnabled(desired) ? desired : LATEST_CARD;
-  if (!WITHIN_12H(initialCard)) {
-    // fallback to most recent earlier card that is within the 12h window
-    for (let n = initialCard - 1; n >= 1; n--) {
-      if (isEnabled(n) && WITHIN_12H(n)) { initialCard = n; break; }
+  let initialCard;
+  if (defaultCard != null && isEnabled(desired)) {
+    // Deep-link wins unconditionally (no 12h check)
+    initialCard = desired;
+  } else {
+    // No deep-link → apply 12h rule
+    initialCard = isEnabled(desired) ? desired : LATEST_CARD;
+    if (!WITHIN_12H(initialCard)) {
+      for (let n = initialCard - 1; n >= 1; n--) {
+        if (isEnabled(n) && WITHIN_12H(n)) { initialCard = n; break; }
+      }
     }
   }
   const initialIndex = initialCard - 1;
