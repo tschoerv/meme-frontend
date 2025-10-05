@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   TaskBar,
   List,
@@ -109,8 +109,17 @@ function MemeHomepage() {
   ];
 
   /* helpers -------------------------------------------------------- */
+  const getDragPos = useCallback((indexOffset = 0) => {
+    const baseX = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 90;
+    const baseY = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 0;
 
-  const open = (id, payload = undefined) => {
+    return {
+      x: baseX + indexOffset * 20,
+      y: baseY + indexOffset * 20,
+    };
+  }, []);
+
+  const open = useCallback((id, payload = undefined) => {
     if (id === 'artDrop') {
       // if no payload provided (Start menu/shortcut), reset -> component uses latest drop
       setArtDropDefaultCard(payload?.defaultCard ?? null);
@@ -128,25 +137,15 @@ function MemeHomepage() {
     setOpenCount((c) => c + 1); // Track how many modals have been opened
     modal.restore(id);
     setTimeout(() => modal.focus(id), 0);
-  };
+  }, [modal, openCount, getDragPos]);
 
-  const close = (id) => {
+  const close = useCallback((id) => {
     setTimeout(() => modal.remove(id), 0);  // remove from task-bar stack
     modal.minimize(id);
     modal.focus('no-id');
     setTimeout(() => setShow((s) => ({ ...s, [id]: false })), 0);
     setOpenCount((c) => Math.max(0, c - 1)); // Prevent negative values
-  };
-
-  const getDragPos = (indexOffset = 0) => {
-    const baseX = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 90;
-    const baseY = typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : 0;
-
-    return {
-      x: baseX + indexOffset * 20,
-      y: baseY + indexOffset * 20,
-    };
-  };
+  }, [modal]);
 
   useEffect(() => {
     if (openedOnce.current) return;
@@ -179,7 +178,7 @@ function MemeHomepage() {
         }
       });
     }, 0);
-  }, [params]);
+  }, [params, open]);
 
 
   useEffect(() => {
@@ -194,7 +193,7 @@ function MemeHomepage() {
       delete window.__openArtDrop;
       delete window.__closeArtDrop;
     };
-  }, []);
+  }, [open, close]);
 
   /* ---------------------------------------------------------------- */
   return (

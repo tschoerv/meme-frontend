@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import { Modal, TitleBar, Button, useModal } from '@react95/core';
 import { Wmsui322223 } from '@react95/icons';
 import Image from 'next/image';
@@ -15,7 +15,7 @@ export function SuccessModalProvider({ children }) {
 
   const SUCCESS_ID = 'mint-success';
 
-  const open = (data, opts) => {
+  const open = useCallback((data, opts) => {
     setPayload(data);
     setVisible(true);
     const anchor = opts?.anchor; // { x, y } of ArtDrop
@@ -34,17 +34,17 @@ export function SuccessModalProvider({ children }) {
     }
     modal.restore(SUCCESS_ID);
     setTimeout(() => modal.focus(SUCCESS_ID), 0);
-  };
+    }, [modal]);
 
-  const close = () => {
+  const close = useCallback(() => {
     setVisible(false);
     setTimeout(() => modal.remove(SUCCESS_ID), 0); // remove from taskbar stack
     modal.minimize(SUCCESS_ID);
     modal.focus('no-id');
     setShowClose(false)
-  };
+  }, [modal]);
 
-  const value = useMemo(() => ({ open, close }), []);
+  const value = useMemo(() => ({ open, close }), [open, close]);
 
   return (
     <SuccessCtx.Provider value={value}>

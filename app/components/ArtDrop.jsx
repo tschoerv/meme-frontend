@@ -46,7 +46,6 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
 
   const [pendingMint, setPendingMint] = useState(null); // snapshot before tx
-  const [mintSuccess, setMintSuccess] = useState(null); // store confirmed tx
 
   const { open: openSuccessModal } = useSuccessModal();
 
@@ -221,7 +220,6 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   // When mined, show success
   useEffect(() => {
     if (mined && txHash && pendingMint && pendingMint.id === id) {
-      setMintSuccess({ ...pendingMint, hash: txHash });
       setPendingMint(null);
       qc.invalidateQueries({ queryKey: balKey });
 
@@ -238,18 +236,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
         { anchor: anchorPos } // ← position the success window based on ArtDrop’s current position
       );
     }
-  }, [mined, txHash, pendingMint, id, qc, balKey, art, anchorPos]);
-
-  const handleShareOnX = () => {
-    if (!art?.src) return;
-
-    const osUrl = `https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${id}`
-
-    const text = `Just minted “${art.title}” by @${art.twitter}!\n$MEME Art Drop — Season 1: Discovery 🎨\n@Memecoin2016`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(osUrl)}`;
-
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  }, [mined, txHash, pendingMint, id, qc, balKey, art, anchorPos, openSuccessModal]);
 
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {

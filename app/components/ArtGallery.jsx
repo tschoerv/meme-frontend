@@ -407,7 +407,7 @@ export default function ArtGallery() {
                           <div className='shrink-0 flex items-center gap-2'>
                             <div
                               type="button"
-                              onClick={(e) => {
+                              onClick={() => {
                                 const anchor = isMobile ? { x: 20, y: 20 } : { x: 110, y: 20 };
                                 window.__openArtDrop?.({ card: artwork.id, anchor });
                               }}
