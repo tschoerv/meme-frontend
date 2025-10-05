@@ -20,7 +20,7 @@ import {
   Brush
 } from '@react95/icons';
 import Image from 'next/image';
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { SuccessModalProvider } from './contexts/SuccessModalContext';
 
 /* ─── your components ─── */
@@ -84,8 +84,6 @@ function MemeHomepage() {
   const modal = useModal();
   const params = useSearchParams();
   const openedOnce = useRef(false);
-  const router = useRouter();
-  const pathname = usePathname();
 
 
   const [show, setShow] = useState({
@@ -180,15 +178,8 @@ function MemeHomepage() {
           open(id);
         }
       });
-
-      const sp = new URLSearchParams(Array.from(params.entries()));
-      sp.delete('open');
-      sp.delete('card');
-      sp.delete('tab');
-      const newUrl = sp.toString() ? `${pathname}?${sp.toString()}` : pathname;
-      router.replace(newUrl, { scroll: false });
     }, 0);
-  }, [params, pathname, router]);
+  }, [params]);
 
 
   useEffect(() => {
