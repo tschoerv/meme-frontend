@@ -30,6 +30,7 @@ export default function ConnectButton95() {
         return (
           <Button
             onClick={handleClick}
+	    className="w-full"
             style={{
               display: 'flex',
               alignItems: 'center',
