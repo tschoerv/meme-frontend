@@ -247,8 +247,8 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   }, []);
 
   // 12.5% smaller on mobile
-  const MEDIA_W = isMobile ? art.width*0.85 : art.width;
-  const MEDIA_H = isMobile ? art.height*0.85 : art.height;
+  const MEDIA_W = isMobile ? art.width * 0.85 : art.width;
+  const MEDIA_H = isMobile ? art.height * 0.85 : art.height;
 
   return (
     <div className="min-w-[320px] md:min-w-[360px]">
@@ -465,9 +465,22 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
   const isTouch = useIsTouchDevice();
 
   const isEnabled = (n) => n <= LATEST_CARD;
-  // pick initial card: deep-link wins, but clamp to latest enabled
+  // pick initial card: deep-link wins, but only default to a card
+  // if we’re within 12h of its drop (ARTWORKS[n].dropsUnix).
+  const now = Math.floor(Date.now() / 1000);
+  const WITHIN_12H = (n) => {
+    const du = ARTWORKS?.[n]?.dropsUnix;   // unix seconds
+    if (!du) return true;                  // no schedule → allow
+    return now >= (du - 12 * 3600);
+  };
   const desired = defaultCard ?? LATEST_CARD;
-  const initialCard = isEnabled(desired) ? desired : LATEST_CARD;
+  let initialCard = isEnabled(desired) ? desired : LATEST_CARD;
+  if (!WITHIN_12H(initialCard)) {
+    // fallback to most recent earlier card that is within the 12h window
+    for (let n = initialCard - 1; n >= 1; n--) {
+      if (isEnabled(n) && WITHIN_12H(n)) { initialCard = n; break; }
+    }
+  }
   const initialIndex = initialCard - 1;
 
   const [season, setSeason] = useState(0);      // 0 = Season 1
@@ -489,7 +502,7 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
               </Tab>
 
               <Tab title="Card 2" style={{ cursor: 'pointer' }}>
-                <CardPanel id={2} isActive={tab === 1} isPaused={!!isPaused} anchorPos={anchorPos}/>
+                <CardPanel id={2} isActive={tab === 1} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
 
