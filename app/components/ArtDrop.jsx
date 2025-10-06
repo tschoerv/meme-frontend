@@ -307,7 +307,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
                 controls={false}
               />
             ) : (
-              <Image
+              <img
                 src={art.thumb}
                 alt={`${art.title} by ${art.artist}`}
                 width={MEDIA_W}
