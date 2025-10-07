@@ -40,7 +40,7 @@ const fmtTime = (seconds) => {
 };
 
 /* ───────────────── Tab body component ───────────────── */
-function CardPanel({ id, isActive, isPaused, anchorPos }) {
+function CardPanel({ id, isPaused, anchorPos }) {
   const { address: caller, isConnected } = useAccount();
   const [amountStr, setAmountStr] = useState('1');
   const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
@@ -75,7 +75,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
       // attempt to play (autoplay allowed because muted)
       videoRef.current.play().catch(() => { });
     }
-  }, [id, art?.src, isActive]);
+  }, [id, art?.src]);
 
   const toggleMute = () => {
     setMuted((m) => {
@@ -98,7 +98,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
     abi: ART_DROP_ABI,
     functionName: 'sale',
     args: [id],
-    enabled: hasContract && isActive,
+    enabled: hasContract,
   });
 
 
@@ -124,7 +124,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
     abi: ART_DROP_ABI,
     functionName: 'unitPriceFor',
     args: [caller ?? '0x0000000000000000000000000000000000000000', id],
-    enabled: hasContract && isActive && priceSet,
+    enabled: hasContract && priceSet,
   });
 
   const price = unitPrice ? BigInt(unitPrice) : 0n;
@@ -135,7 +135,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   const { data: inv, queryKey: balKey } = useReadContract({
     address: MEME_ART_ADDR, abi: ERC1155_ABI, functionName: 'balanceOf',
     args: [ART_DROP_ADDR, id],
-    enabled: hasContract && isActive,
+    enabled: hasContract,
   });
   const inventory = Number(inv ?? 0);
 
@@ -163,7 +163,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
     args: [id, BigInt(Math.max(1, amountNum || 0)), caller ?? '0x0000000000000000000000000000000000000000'],
     value: totalValue,
     account: caller,
-    enabled: hasContract && isActive && isConnected && amountOk && saleOpen && !isPaused,
+    enabled: hasContract && isConnected && amountOk && saleOpen && !isPaused,
   });
 
   const lastTryRef = useRef(0);
@@ -174,7 +174,6 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
 
     const shouldRetry =
       hasContract &&
-      isActive &&
       isConnected &&
       amountOk &&
       saleOpen &&       // UI clock says "open"
@@ -187,8 +186,10 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
       refetchSim();
     }
   }, [
-    hasContract, isActive, isConnected, amountOk, saleOpen, isPaused, simStatus, simError, refetchSim,
+    hasContract, isConnected, amountOk, saleOpen, isPaused, simStatus, simError, refetchSim,
   ]);
+
+
 
 
   const { writeContract, data: txHash } = useWriteContract();
@@ -196,7 +197,7 @@ function CardPanel({ id, isActive, isPaused, anchorPos }) {
   const pending = !!txHash && !mined;
 
   const canBuy =
-    hasContract && isActive && isConnected && saleOpen && !isPaused &&
+    hasContract && isConnected && saleOpen && !isPaused &&
     amountOk && price > 0n && totalValue > 0n &&
     simStatus === 'success' && !!sim?.request && !pending && inventory > 0;
 
@@ -502,11 +503,11 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
           <Tab title="Season 1" className="mb-2">
             <Tabs value={tab} defaultActiveTab={initialTitle} onChange={setTab} className="mb-2">
               <Tab title="Card 1" style={{ cursor: 'pointer' }}>
-                <CardPanel id={1} isActive={tab === 0} isPaused={!!isPaused} anchorPos={anchorPos} />
+                <CardPanel id={1} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
               <Tab title="Card 2" style={{ cursor: 'pointer' }}>
-                <CardPanel id={2} isActive={tab === 1} isPaused={!!isPaused} anchorPos={anchorPos} />
+                <CardPanel id={2} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
 
