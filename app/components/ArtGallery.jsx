@@ -401,6 +401,7 @@ export default function ArtGallery() {
 
                         {hasMedia && (
                           <div className='shrink-0 flex items-center gap-2'>
+                            {artwork.soldOut === 'false' && (
                             <div
                               type="button"
                               onClick={() => {
@@ -419,7 +420,7 @@ export default function ArtGallery() {
                                 style={{ width: 22, height: 22 }}
                               />
                             </div>
-                            
+                            )}
                             <a
                               href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.id}`}
                               target="_blank"
