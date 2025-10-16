@@ -119,6 +119,50 @@ function MemeHomepage() {
     };
   }, []);
 
+ // returns your intended opening position (with stagger)
+const getTargetPos = (id) => {
+  let base = getDragPos(openCount);    // your 20px stagger function
+  // One-time extra bump for the very first logo modal:
+  if (id === 'logo' && openCount === 1) {
+    base = { x: base.x + 20, y: base.y + 20 };
+  }
+  return base;
+};
+
+// If you want ArtDrop to sometimes open at an anchor (e.g., from Gallery):
+const getTargetPosWithPayload = (id, payload) => {
+  const base = getTargetPos(id);
+  if (id === 'artDrop' && payload?.anchor) {
+    const { x, y } = payload.anchor;
+    if (Number.isFinite(x) && Number.isFinite(y)) return { x, y };
+  }
+  return base;
+};
+
+const getAdjustedX = (targetX) => {
+  const w = typeof window !== 'undefined' ? window.innerWidth : 9999; // fallback for SSR
+  if (w < 365) return targetX - 20;
+  if (w < 400) return targetX - 15;
+  return targetX - 10;
+};
+
+// Build dragOptions without using `position`
+const dragOpts = (id, payload) => {
+  const target = getTargetPosWithPayload(id, payload);
+  return isTouch
+    ? {
+        // mobile: cancel neodrag's +20/+20 by pre-subtracting 20
+        defaultPosition: { x: getAdjustedX(target.x), y: target.y - 25 },
+        onDragStart: () => modal.focus(id),
+      }
+    : {
+        // desktop unchanged
+        defaultPosition: target,
+        onDragStart: () => modal.focus(id),
+      };
+};
+
+
   const open = useCallback((id, payload = undefined) => {
     if (id === 'artDrop') {
       // if no payload provided (Start menu/shortcut), reset -> component uses latest drop
@@ -267,7 +311,7 @@ function MemeHomepage() {
           id="logo"
           title="logo.png"
           icon={<Mshtml32540 variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('logo')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('logo')} />,
@@ -287,7 +331,7 @@ function MemeHomepage() {
           id="airdrop"
           title="Airdrop.exe"
           icon={<Optional3000 variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('airdrop')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('airdrop')} />
@@ -304,16 +348,16 @@ function MemeHomepage() {
           id="tokenomics"
           title="Tokenomics.png"
           icon={<Drvspace1 variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('tokenomics')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('tokenomics')} />,
           ]}
         >
-          <Modal.Content width={420} height={420} boxShadow="$in">
-            <div className="flex flex-col items-center min-w-[400px] min-h-[380px]">
+          <Modal.Content boxShadow="$in">
+            <div className="flex flex-col items-center min-w-[300px] min-h-[340px] sm:min-w-[400px] sm:min-h-[380px] px-3 sm:px-0">
               <p className="text-sm text-center mb-6">MEME Tokenomics Overview</p>
-              <Image src="/tokenomics_cropped.svg" alt="tokenomics" width={380} height={300} />
+              <Image src="/tokenomics_cropped.svg" alt="tokenomics" width={isTouch ? 323 : 380} height={isTouch ? 255 : 300} />
               <div className='text-left'>
                 <p className='mt-4 mb-1 text-xs'>• 100% of the funds raised in the presale (6eth) went into the LP.</p>
                 <p className='mt-0 mb-1 text-xs'>• Liquidity position <a
@@ -341,7 +385,7 @@ function MemeHomepage() {
           id="info"
           title="Lore.txt"
           icon={<Wordpad variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('info')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('info')} />,
@@ -360,7 +404,7 @@ function MemeHomepage() {
           id="dao"
           title="MemeDAO.txt"
           icon={<Wordpad variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('dao')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('dao')} />,
@@ -378,7 +422,7 @@ function MemeHomepage() {
           id="gallery"
           title="Gallery.exe"
           icon={<Wangimg128 variant="16x16_4" />}
-          dragOptions={{ defaultPosition: getDragPos(openCount) }}
+          dragOptions={dragOpts('gallery')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('gallery')} />,
@@ -397,21 +441,12 @@ function MemeHomepage() {
           id="artDrop"
           title="ArtDrop.exe"
           icon={<Brush variant="32x32_4" />}
-          dragOptions={{
-            defaultPosition: getDragPos(openCount),
-            onDragEnd: (data) => {
-              // data.x / data.y are from react-draggable
-              setArtDropPos({ x: data.offsetX - 20, y: data.offsetY - 20 });
-              console.log(data.offsetX - 20, data.offsetY - 20)
-            },
-            onDragStart: () => modal.focus('artDrop'),
-          }}
+          dragOptions={dragOpts('artDrop')}
           titleBarOptions={[
             <Modal.Minimize key="min" />,
             <TitleBar.Close key="x" onClick={() => close('artDrop')} />,
           ]}
         >
-          {/* Adjust size to your component’s needs */}
           <Modal.Content width={520} className="max-h-[88vh]" boxShadow="$in">
             <div className="overflow-auto h-full">
               <ArtDrop anchorPos={artDropPos} defaultCard={artDropDefaultCard} />
