@@ -248,8 +248,8 @@ function CardPanel({ id, isPaused, anchorPos }) {
   }, []);
 
   // 12.5% smaller on mobile
-  const MEDIA_W = isMobile ? art.width * 0.85 : art.width;
-  const MEDIA_H = isMobile ? art.height * 0.85 : art.height;
+  const MEDIA_W = isMobile ? art.width * 0.75 : art.width;
+  const MEDIA_H = isMobile ? art.height * 0.75 : art.height;
 
   return (
     <div className="min-w-[320px] md:min-w-[360px]">
@@ -262,7 +262,7 @@ function CardPanel({ id, isPaused, anchorPos }) {
               : isPaused
                 ? 'Paused'
                 : soldOut
-                  ? 'Sale Closed'
+                  ? 'Sold Out'
                   : 'Sale Open'}
         </Checkbox>
 
@@ -463,35 +463,72 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
 
   const isTouch = useIsTouchDevice();
 
-  const isEnabled = (n) => n <= LATEST_CARD;
-  // pick initial card: deep-link wins, but only default to a card
-  // if we’re within 12h of its drop (ARTWORKS[n].dropsUnix).
+  const getAw = (n) => ARTWORKS?.[n];
+
+  function normalizeSoldOut(v) {
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase();
+      if (s === 'true') return true;
+      if (s === 'false') return false;
+    }
+    // strict: anything else → treat as false
+    return false;
+  }
+
+  const isSoldOut = (n) => normalizeSoldOut(getAw(n)?.soldOut);
+
+  // enabled = revealed/live
+  const isEnabled = (n) => n >= 1 && n <= LATEST_CARD;
+
   const now = Math.floor(Date.now() / 1000);
   const WITHIN_12H = (n) => {
-    const du = ARTWORKS?.[n]?.dropsUnix;   // unix seconds
-    if (!du) return true;                  // no schedule → allow
+    const du = getAw(n)?.dropsUnix;
+    if (!du) return true;
     return now >= (du - 12 * 3600);
   };
+
   const desired = defaultCard ?? LATEST_CARD;
   let initialCard;
+
+  // deep-link wins if enabled
   if (defaultCard != null && isEnabled(desired)) {
-    // Deep-link wins unconditionally (no 12h check)
     initialCard = desired;
   } else {
-    // No deep-link → apply 12h rule
-    initialCard = isEnabled(desired) ? desired : LATEST_CARD;
-    if (!WITHIN_12H(initialCard)) {
-      for (let n = initialCard - 1; n >= 1; n--) {
-        if (isEnabled(n) && WITHIN_12H(n)) { initialCard = n; break; }
+    const latest = LATEST_CARD;
+    const prev = latest > 1 ? latest - 1 : null;
+
+    if (isSoldOut(latest)) {
+      // pick most recent not-sold-out
+      let picked = null;
+      for (let n = latest; n >= 1; n--) {
+        if (isEnabled(n) && !isSoldOut(n)) { picked = n; break; }
+      }
+      initialCard = picked ?? latest;
+    } else {
+      if (WITHIN_12H(latest)) {
+        initialCard = latest;
+      } else if (prev && isSoldOut(prev)) {
+        // outside 12h but previous already sold out → show latest now
+        initialCard = latest;
+      } else {
+        // try nearest earlier not-sold-out within 12h
+        let picked = null;
+        for (let n = latest - 1; n >= 1; n--) {
+          if (isEnabled(n) && !isSoldOut(n) && WITHIN_12H(n)) { picked = n; break; }
+        }
+        if (!picked) {
+          for (let n = latest - 1; n >= 1; n--) {
+            if (isEnabled(n) && !isSoldOut(n)) { picked = n; break; }
+          }
+        }
+        initialCard = picked ?? latest;
       }
     }
   }
-  const initialIndex = initialCard - 1;
 
-  const [season, setSeason] = useState(0);      // 0 = Season 1
-  const [tab, setTab] = useState(initialIndex);
+  const initialTitle = `Card ${initialCard}`;
 
-  const initialTitle = isEnabled(initialCard) ? `Card ${initialCard}` : `Card ${LATEST_CARD}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 360 }}>
@@ -499,9 +536,9 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
 
       <div className="mt-2">
         {/* Seasons */}
-        <Tabs value={season} onChange={setSeason} className="mb-3 custom-tabs">
+        <Tabs className="mb-3 custom-tabs">
           <Tab title="Season 1" className="mb-2">
-            <Tabs value={tab} defaultActiveTab={initialTitle} onChange={setTab} className="mb-2">
+            <Tabs defaultActiveTab={initialTitle} className="mb-2">
               <Tab title="Card 1" style={{ cursor: 'pointer' }}>
                 <CardPanel id={1} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
@@ -518,7 +555,9 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
 
 
 
-              <Tab title={<Tooltip text="Drops Oct 21th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 4</Tooltip>} disabled />
+              <Tab title="Card 4" style={{ cursor: 'pointer' }}>
+                <CardPanel id={4} isPaused={!!isPaused} anchorPos={anchorPos} />
+              </Tab>
 
 
 
