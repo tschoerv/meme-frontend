@@ -66,7 +66,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
 
   if (!artwork.src) {
     return (
-      <div className="flex items-center justify-center bg-[#dcdcdc] h-[200px] md:h-[250px] min-w-[297px] md:min-w-[375px]">
+      <div className="flex items-center justify-center bg-[#dcdcdc] h-[300px] min-w-[300px] md:min-w-[350px]">
         <div className="relative w-[48px] h-[48px]">
           <Winhlp324000 variant="32x32_4" className="absolute inset-0 w-full h-full object-contain" />
         </div>
@@ -77,7 +77,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
   return (
     <div className="w-full bg-[#dcdcdc]">
       <div
-        className="relative h-[200px] md:h-[250px] overflow-hidden flex items-center justify-center"
+        className="relative h-[300px] max-w-[300px] md:max-w-[350px] overflow-hidden flex items-center justify-center"
         onClick={openFullscreen}
         role="button"
         title="Open fullscreen"
@@ -131,8 +131,8 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
             }}
             style={{
               position: 'absolute',
-              right: 6,
-              bottom: 6,
+              right: 4,
+              bottom: 4,
               width: 25,
               height: 25,
               display: 'flex',
