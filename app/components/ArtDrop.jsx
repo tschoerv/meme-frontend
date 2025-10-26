@@ -64,6 +64,7 @@ function CardPanel({ id, isPaused, anchorPos }) {
   // Artwork state
   const art = ARTWORKS[id] || null;
   const isVideo = !!art?.src && /\.mp4(\?.*)?$/i.test(art.src);
+  const isGif = !!art?.gif; // mp4 behaving like a gif (no mute control)
   const videoRef = useRef(null);
   const [muted, setMuted] = useState(true);
 
@@ -78,6 +79,7 @@ function CardPanel({ id, isPaused, anchorPos }) {
   }, [id, art?.src]);
 
   const toggleMute = () => {
+    if (isGif) return;
     setMuted((m) => {
       const next = !m;
       if (videoRef.current) {
@@ -301,7 +303,7 @@ function CardPanel({ id, isPaused, anchorPos }) {
                 width={MEDIA_W}
                 height={MEDIA_H}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}
-                muted={muted}
+                muted={isGif ? true : muted}
                 loop
                 autoPlay
                 playsInline
@@ -318,7 +320,7 @@ function CardPanel({ id, isPaused, anchorPos }) {
             )}
 
             {/* Unmute/Mute button for videos */}
-            {isVideo && (
+            {isVideo && !isGif && (
               <div
                 role="button"
                 aria-label={muted ? 'Unmute' : 'Mute'}
@@ -561,7 +563,9 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
 
 
 
-              <Tab title={<Tooltip text="Drops Oct 28th, 5PM EST" delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 5</Tooltip>} disabled />
+              <Tab title="Card 5" style={{ cursor: 'pointer' }}>
+                <CardPanel id={5} isPaused={!!isPaused} anchorPos={anchorPos} />
+              </Tab>
 
 
 
