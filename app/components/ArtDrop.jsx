@@ -569,8 +569,9 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
 
 
 
-              <Tab title={<Tooltip text={isTouch ? ("Nov 4th, 5PM EST") : ("Drops Nov 4th, 5PM EST")} delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 6</Tooltip>} disabled />
-
+              <Tab title="Card 6" style={{ cursor: 'pointer' }}>
+                <CardPanel id={6} isPaused={!!isPaused} anchorPos={anchorPos} />
+              </Tab>
 
 
               <Tab title={<Tooltip text={isTouch ? ("Nov 11th") : ("Drops Nov 11th")} delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />

@@ -4,11 +4,11 @@ export const ARTWORKS = {
   3: { src: '/art/season1/CryptoArte_I-algo.png', thumb:'/art/season1/optimized/CryptoArte_I-algo-320w.webp', artist: 'CryptoArte', title: 'I-algo', pfp:'/artist_pfp/CRYPTOARTE.webp', twitter: 'CryptoArte', drops: 'Oct 14th', dropsUnix: '1760475600', width:'277', height: '277', soldOut: 'true' },
   4: { src: '/art/season1/DeltaSauce_ghostboy.png', thumb:'/art/season1/optimized/DeltaSauce_ghostboy-320w.webp', artist: 'DeltaSauce', title: 'ghostboy', pfp:'/artist_pfp/DELTASAUCE.webp', twitter: 'delta_sauce', drops: 'Oct 21th', dropsUnix: '1761080400', width:'155', height: '277', soldOut: 'false' },
   5: { src: '/art/season1/Metageist_Synapse.mp4', poster:'/art/season1/optimized/Metageist_Synapse-poster-320w.webp', gif:'true', artist: 'Metageist', title: 'Synapse', pfp:'/artist_pfp/METAGEIST.webp', twitter: 'MetageistVR', drops: 'Oct 28th', dropsUnix: '1761685200', width:'277', height: '277', soldOut: 'false' },
-  6: { src: '', thumb:'', artist: 'Bitcoin', title: '', pfp:'/artist_pfp/ARTISTBITCOIN.webp', twitter: 'artistbitcoin', drops: 'Nov 4th', dropsUnix: '1762293600', width:'', height: '', soldOut: 'false' },
+  6: { src: '/art/season1/Bitcoin_Infinite_Demise.png', thumb:'/art/season1/optimized/Bitcoin_Infinite_Demise-320w.webp', artist: 'Bitcoin', title: 'Infinite Demise', pfp:'/artist_pfp/ARTISTBITCOIN.webp', twitter: 'artistbitcoin', drops: 'Nov 4th', dropsUnix: '1762293600', width:'185', height: '277', soldOut: 'false' },
   7: { src: '', thumb:'', artist: 'VERDANDI', title: '', pfp:'/artist_pfp/VERDANDI.webp', twitter: 'TheVERDANDI', drops: 'Nov 11th', dropsUnix: '1762898400', width:'', height: '', soldOut: 'false' },
 };
 
-export const LATEST_CARD = 5;
+export const LATEST_CARD = 6;
 
 export const PRICE_SEASON_1 = 0.01;
 
