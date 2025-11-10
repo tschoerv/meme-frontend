@@ -573,8 +573,9 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
                 <CardPanel id={6} isPaused={!!isPaused} anchorPos={anchorPos} />
               </Tab>
 
-
-              <Tab title={<Tooltip text={isTouch ? ("Nov 11th") : ("Drops Nov 11th")} delay={200} style={{ cursor: `url(${Cursor.NotAllowed}), not-allowed` }}>Card 7</Tooltip>} disabled />
+              <Tab title="Card 7" style={{ cursor: 'pointer' }}>
+                <CardPanel id={7} isPaused={!!isPaused} anchorPos={anchorPos} />
+              </Tab>
 
             </Tabs>
             <div className="flex flex-row justify-center mt-2 mb-0">
