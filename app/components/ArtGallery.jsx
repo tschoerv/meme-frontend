@@ -58,7 +58,7 @@ function ArtworkPreview({ artwork, isActive, onRequestActive, onOpenLightbox }) 
           title: artwork.title,
           artist: artwork.artist,
           poster: artwork.poster,
-          gif: isGif, // pass-through for lightbox behavior
+          gif: artwork.gif, // pass-through for lightbox behavior
         }
         : { type: 'image', src: artwork.src, title: artwork.title, artist: artwork.artist }
     );
@@ -162,6 +162,8 @@ function Lightbox({ item, onClose }) {
 
   useEffect(() => setMounted(true), []);
 
+  const isGif = !!item?.gif;
+
   // Reset state when a new item opens
   useEffect(() => {
     const isGif = !!item?.gif;
@@ -192,13 +194,28 @@ function Lightbox({ item, onClose }) {
 
     // If it's a gif-like video, we keep it muted and just play.
     const p = v.play();
-    if (!item.gif && p && typeof p.then === 'function') {
+    if (!isGif && p && typeof p.then === 'function') {
       p.catch(() => {
         // Browser blocked autoplay with sound — show “Tap to play”
         setNeedsTap(true);
       });
     }
   }, [muted, item]);
+
+  const onDownload = (e) => {
+    e.stopPropagation();
+    if (!item) return;
+    const url = item.gif || item.src;
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    // try to infer a filename (strip query)
+    const clean = url.split('?')[0];
+    a.download = clean.substring(clean.lastIndexOf('/') + 1) || 'download';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   if (!item || !mounted) return null;
 
@@ -234,7 +251,7 @@ function Lightbox({ item, onClose }) {
                 muted={muted}
                 className="absolute inset-0 w-full h-full object-contain"
               />
-              {!item.gif && needsTap && (
+              {!isGif && needsTap && (
                 <button
                   onClick={() => {
                     setNeedsTap(false);
@@ -250,7 +267,35 @@ function Lightbox({ item, onClose }) {
           )}
         </div>
 
-        {/* Close button */}
+        {/* Mute/Unmute button — left of Close; HIDDEN for gif-like */}
+        {item.type === 'video' && !isGif && (
+          <button
+            aria-label={muted ? 'Unmute' : 'Mute'}
+            title={muted ? 'Unmute' : 'Mute'}
+            onClick={(e) => { e.stopPropagation(); setMuted(m => !m); }}
+            className="absolute top-3 right-[84px]"
+            style={{ width: 32, height: 33, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <Image
+              src={muted ? '/icons/icons8-mute-50.png' : '/icons/icons8-audio-50.png'}
+              alt={muted ? 'Muted' : 'Unmuted'}
+              width={20}
+              height={20}
+            />
+          </button>
+        )}
+
+        <button
+          aria-label="Download"
+          title="Download"
+          onClick={onDownload}
+          className="absolute top-3 right-12"
+          style={{ width: 32, height: 33, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <Image src="/icons/icons8-download-48.png" alt="Download" width={20} height={20} />
+        </button>
+
+         {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close"
@@ -267,42 +312,6 @@ function Lightbox({ item, onClose }) {
           ✕
         </button>
 
-        {/* Mute/Unmute button — left of Close; HIDDEN for gif-like */}
-        {item.type === 'video' && !item.gif && (
-          <button
-            role="button"
-            aria-label={muted ? 'Unmute' : 'Mute'}
-            title={muted ? 'Unmute' : 'Mute'}
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              setMuted((m) => !m);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.stopPropagation();
-                setMuted((m) => !m);
-              }
-            }}
-            style={{
-              width: 32,
-              height: 33,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            className="absolute top-3 right-12"
-          >
-            <Image
-              src={muted ? '/icons/icons8-mute-50.png' : '/icons/icons8-audio-50.png'}
-              alt={muted ? 'Muted' : 'Unmuted'}
-              width={20}
-              height={20}
-            />
-          </button>
-        )}
       </div>
     </div>,
     document.body
@@ -402,24 +411,24 @@ export default function ArtGallery() {
                         {hasMedia && (
                           <div className='shrink-0 flex items-center gap-2'>
                             {artwork.soldOut === 'false' && (
-                            <div
-                              type="button"
-                              onClick={() => {
-                                const anchor = isMobile ? { x: 20, y: 20 } : { x: 110, y: 20 };
-                                window.__openArtDrop?.({ card: artwork.id, anchor });
-                              }}
-                              aria-label={`Open ArtDrop for card ${artwork.id}`}
-                              title="Open ArtDrop"
-                              className="inline-flex items-center justify-center leading-none"
-                            >
-                              <Brush
-                                variant="32x32_4"
-                                // these hit the underlying <img>, overriding intrinsic size
-                                width={22}
-                                height={22}
-                                style={{ width: 22, height: 22 }}
-                              />
-                            </div>
+                              <div
+                                type="button"
+                                onClick={() => {
+                                  const anchor = isMobile ? { x: 20, y: 20 } : { x: 110, y: 20 };
+                                  window.__openArtDrop?.({ card: artwork.id, anchor });
+                                }}
+                                aria-label={`Open ArtDrop for card ${artwork.id}`}
+                                title="Open ArtDrop"
+                                className="inline-flex items-center justify-center leading-none"
+                              >
+                                <Brush
+                                  variant="32x32_4"
+                                  // these hit the underlying <img>, overriding intrinsic size
+                                  width={22}
+                                  height={22}
+                                  style={{ width: 22, height: 22 }}
+                                />
+                              </div>
                             )}
                             <a
                               href={`https://opensea.io/item/ethereum/${MEME_ART_ADDR}/${artwork.id}`}
