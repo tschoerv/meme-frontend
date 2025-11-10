@@ -17,7 +17,6 @@ import Image from "next/image";
 import { ART_DROP_ABI } from '../abi/artDropAbi.js';
 import { ERC1155_ABI } from '../abi/ERC1155Abi.js';
 import { ARTWORKS, PRICE_SEASON_1, DISCOUNT_PCT_SEASON_1, LATEST_CARD } from '../config/artworks';
-import { useIsTouchDevice } from '../hooks/useIsTouchDevice';
 import { useSuccessModal } from '../contexts/SuccessModalContext';
 
 /* ───────────────── Config ───────────────── */
@@ -462,8 +461,6 @@ export default function ArtDrop({ anchorPos, defaultCard = null }) {
     address: ART_DROP_ADDR, abi: ART_DROP_ABI, functionName: 'paused',
     enabled: !!ART_DROP_ADDR,
   });
-
-  const isTouch = useIsTouchDevice();
 
   const getAw = (n) => ARTWORKS?.[n];
 

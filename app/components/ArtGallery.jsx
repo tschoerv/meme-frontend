@@ -169,7 +169,7 @@ function Lightbox({ item, onClose }) {
     const isGif = !!item?.gif;
     setMuted(isGif ? true : false); // GIF-like start muted & stay muted
     setNeedsTap(false);
-  }, [item?.src, item?.gif]);
+  }, [item?.src, item?.gif, isGif]);
 
   // Esc + body scroll lock
   useEffect(() => {
